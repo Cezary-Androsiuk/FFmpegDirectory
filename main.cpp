@@ -19,12 +19,14 @@
 namespace fs = std::filesystem;
 typedef std::string str;
 
+
 str lastError;
 #define FUNC_START {lastError = "";}
 
 #define COLOR_RESET   "\033[0m"
 #define COLOR_RED     "\033[31m"
 #define COLOR_GREEN   "\033[32m"
+
 
 bool argsValid(int argc, const char **argv, fs::path * const absoluteDirectory = nullptr)
 {
@@ -62,7 +64,6 @@ bool argsValid(int argc, const char **argv, fs::path * const absoluteDirectory =
 
 bool isDirectoryEmpty(fs::path directory)
 {
-    FUNC_START
     // should be an directory at this point, then no checking
 
     // very fancy way to check it xd (by Gemini)
@@ -102,6 +103,36 @@ bool createOutputDirectory(fs::path outDirectory)
     return true;
 }
 
+// bool execute
+
+void changeOutToFile(const str &outputFile)
+{
+    output_file = open(outputFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    // this flags are open to write, will be created, his content will erased
+    // 0644 are permisions that will be given to file
+    if (output_file == -1) {
+        // std::cerr << "Failed to open file for writing" << std::endl;
+        printf("error while oppening wile %s\n", outputFile.c_str());
+        return;
+    }
+
+    stdout_backup = dup(STDOUT_FILENO);
+    stderr_backup = dup(STDERR_FILENO);
+
+    dup2(output_file, STDOUT_FILENO);
+    dup2(output_file, STDERR_FILENO);
+}
+
+void restoreOutToCMD()
+{
+    dup2(stdout_backup, STDOUT_FILENO);
+    dup2(stderr_backup, STDERR_FILENO);
+
+    close(output_file);
+    close(stdout_backup);
+    close(stderr_backup);
+}
+
 int main(int argc, const char **argv)
 {
     fs::path directory;
@@ -123,74 +154,45 @@ int main(int argc, const char **argv)
 
 
 
-    int file = open("output1.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (file == -1) {
-        // std::cerr << "Failed to open file for writing" << std::endl;
-        printf("X\n");
-        return 1;
-    }
-
-
-
-    printf("1 file... ");
-
     std::string inFile = (directory / "1.mkv").string();
     std::string outFile = (outDirectory / "1.mkv").string();
     std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     
-    // Przechowywanie obecnego stdout i stderr
-    int stdout_backup = dup(STDOUT_FILENO);
-    int stderr_backup = dup(STDERR_FILENO);
+    printf("1 file... ");
 
-    // Przekierowanie stdout i stderr do pliku
-    dup2(file, STDOUT_FILENO);
-    dup2(file, STDERR_FILENO);
-
+    changeOutToFile("output1.txt");
     std::system(command.c_str());
-
-    // Przywrócenie stdout i stderr do terminala
-    dup2(stdout_backup, STDOUT_FILENO);
-    dup2(stderr_backup, STDERR_FILENO);
-
-    // Zamknięcie pliku i przywrócenie kopii deskryptorów
-    close(file);
-    close(stdout_backup);
-    close(stderr_backup);
+    restoreOutToCMD();
 
     printf("1 was finished\n");
 
 
-    file = open("output1.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (file == -1) {
-        // std::cerr << "Failed to open file for writing" << std::endl;
-        printf("X\n");
-        return 1;
-    }
 
-    printf("2 file... ");
 
     inFile = (directory / "2.mkv").string();
     outFile = (outDirectory / "2.mkv").string();
     command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     
-    // Przechowywanie obecnego stdout i stderr
-    stdout_backup = dup(STDOUT_FILENO);
-    stderr_backup = dup(STDERR_FILENO);
-
-    // Przekierowanie stdout i stderr do pliku
-    dup2(file, STDOUT_FILENO);
-    dup2(file, STDERR_FILENO);
+    printf("2 file... ");
     
+    changeOutToFile("output2.txt");
     std::system(command.c_str());
-
-    // Przywrócenie stdout i stderr do terminala
-    dup2(stdout_backup, STDOUT_FILENO);
-    dup2(stderr_backup, STDERR_FILENO);
-
-    // Zamknięcie pliku i przywrócenie kopii deskryptorów
-    close(file);
-    close(stdout_backup);
-    close(stderr_backup);
+    restoreOutToCMD();
 
     printf("2 was finished\n");
+
+
+
+
+    inFile = (directory / "3.mkv").string();
+    outFile = (outDirectory / "3.mkv").string();
+    command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    
+    printf("3 file... ");
+    
+    changeOutToFile("output3.txt");
+    std::system(command.c_str());
+    restoreOutToCMD();
+
+    printf("3 was finished\n");
 }
