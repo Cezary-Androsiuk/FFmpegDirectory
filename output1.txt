@@ -1,0 +1,66 @@
+ffmpeg version 6.1.1-full_build-www.gyan.dev Copyright (c) 2000-2023 the FFmpeg developers
+  built with gcc 12.2.0 (Rev10, Built by MSYS2 project)
+  configuration: --enable-gpl --enable-version3 --enable-static --pkg-config=pkgconf --disable-w32threads --disable-autodetect --enable-fontconfig --enable-iconv --enable-gnutls --enable-libxml2 --enable-gmp --enable-bzlib --enable-lzma --enable-libsnappy --enable-zlib --enable-librist --enable-libsrt --enable-libssh --enable-libzmq --enable-avisynth --enable-libbluray --enable-libcaca --enable-sdl2 --enable-libaribb24 --enable-libaribcaption --enable-libdav1d --enable-libdavs2 --enable-libuavs3d --enable-libzvbi --enable-librav1e --enable-libsvtav1 --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxavs2 --enable-libxvid --enable-libaom --enable-libjxl --enable-libopenjpeg --enable-libvpx --enable-mediafoundation --enable-libass --enable-frei0r --enable-libfreetype --enable-libfribidi --enable-libharfbuzz --enable-liblensfun --enable-libvidstab --enable-libvmaf --enable-libzimg --enable-amf --enable-cuda-llvm --enable-cuvid --enable-ffnvcodec --enable-nvdec --enable-nvenc --enable-dxva2 --enable-d3d11va --enable-libvpl --enable-libshaderc --enable-vulkan --enable-libplacebo --enable-opencl --enable-libcdio --enable-libgme --enable-libmodplug --enable-libopenmpt --enable-libopencore-amrwb --enable-libmp3lame --enable-libshine --enable-libtheora --enable-libtwolame --enable-libvo-amrwbenc --enable-libcodec2 --enable-libilbc --enable-libgsm --enable-libopencore-amrnb --enable-libopus --enable-libspeex --enable-libvorbis --enable-ladspa --enable-libbs2b --enable-libflite --enable-libmysofa --enable-librubberband --enable-libsoxr --enable-chromaprint
+  libavutil      58. 29.100 / 58. 29.100
+  libavcodec     60. 31.102 / 60. 31.102
+  libavformat    60. 16.100 / 60. 16.100
+  libavdevice    60.  3.100 / 60.  3.100
+  libavfilter     9. 12.100 /  9. 12.100
+  libswscale      7.  5.100 /  7.  5.100
+  libswresample   4. 12.100 /  4. 12.100
+  libpostproc    57.  3.100 / 57.  3.100
+Input #0, matroska,webm, from 'D:\vscode\c++\just_small_projects\ffmpeg_all_in_given_directory\test\1.mkv':
+  Metadata:
+    ENCODER         : Lavf61.1.100
+  Duration: 00:00:14.77, start: 0.000000, bitrate: 373 kb/s
+  Stream #0:0: Video: h264 (High), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 30 fps, 30 tbr, 1k tbn
+    Metadata:
+      DURATION        : 00:00:14.766000000
+  Stream #0:1: Audio: aac (LC), 48000 Hz, stereo, fltp
+    Metadata:
+      title           : simple_aac_recording0
+      DURATION        : 00:00:14.677000000
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> hevc (libx265))
+  Stream #0:1 -> #0:1 (aac (native) -> vorbis (libvorbis))
+Press [q] to stop, [?] for help
+x265 [info]: HEVC encoder version 3.5+113-8787af124
+x265 [info]: build info [Windows][GCC 13.2.0][64 bit] 8bit+10bit+12bit
+x265 [info]: using cpu capabilities: MMX2 SSE2Fast LZCNT SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2
+x265 [info]: Main profile, Level-4 (Main tier)
+x265 [info]: Thread pool created using 12 threads
+x265 [info]: Slices                              : 1
+x265 [info]: frame threads / pool features       : 3 / wpp(17 rows)
+x265 [info]: Coding QT: max CU size, min CU size : 64 / 8
+x265 [info]: Residual QT: max TU size, max depth : 32 / 1 inter / 1 intra
+x265 [info]: ME / range / subpel / merge         : hex / 57 / 2 / 3
+x265 [info]: Keyframe min / max / scenecut / bias  : 25 / 250 / 40 / 5.00 
+x265 [info]: Lookahead / bframes / badapt        : 20 / 4 / 2
+x265 [info]: b-pyramid / weightp / weightb       : 1 / 1 / 0
+x265 [info]: References / ref-limit  cu / depth  : 3 / off / on
+x265 [info]: AQ: mode / str / qg-size / cu-tree  : 2 / 1.0 / 32 / 1
+x265 [info]: Rate Control / qCompress            : CRF-28.0 / 0.60
+x265 [info]: tools: rd=3 psy-rd=2.00 early-skip rskip mode=1 signhide tmvp
+x265 [info]: tools: b-intra strong-intra-smoothing lslices=6 deblock sao
+Output #0, matroska, to 'D:\vscode\c++\just_small_projects\ffmpeg_all_in_given_directory\test\ffmpeg-h.265\1.mkv':
+  Metadata:
+    encoder         : Lavf60.16.100
+  Stream #0:0: Video: hevc (hvc1 / 0x31637668), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 30 fps, 1k tbn
+    Metadata:
+      DURATION        : 00:00:14.766000000
+      encoder         : Lavc60.31.102 libx265
+    Side data:
+      cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1: Audio: vorbis (oV[0][0] / 0x566F), 48000 Hz, stereo, fltp
+    Metadata:
+      title           : simple_aac_recording0
+      DURATION        : 00:00:14.677000000
+      encoder         : Lavc60.31.102 libvorbis
+frame=    0 fps=0.0 q=0.0 size=       7kB time=00:00:00.31 bitrate= 185.3kbits/s speed=8.81x    frame=   15 fps=0.0 q=36.0 size=       7kB time=00:00:01.76 bitrate=  32.7kbits/s speed=3.26x    frame=   51 fps= 48 q=36.0 size=       7kB time=00:00:02.95 bitrate=  19.5kbits/s speed=2.81x    frame=   97 fps= 62 q=35.0 size=       7kB time=00:00:04.49 bitrate=  12.8kbits/s speed=2.86x    frame=  147 fps= 69 q=36.0 size=       7kB time=00:00:06.15 bitrate=   9.4kbits/s speed= 2.9x    frame=  186 fps= 71 q=34.5 size=     123kB time=00:00:07.45 bitrate= 135.5kbits/s speed=2.84x    frame=  232 fps= 74 q=33.9 size=     123kB time=00:00:08.99 bitrate= 112.3kbits/s speed=2.87x    frame=  268 fps= 74 q=33.7 size=     222kB time=00:00:10.18 bitrate= 178.9kbits/s speed= 2.8x    frame=  308 fps= 74 q=35.0 size=     222kB time=00:00:11.53 bitrate= 158.0kbits/s speed=2.77x    frame=  351 fps= 75 q=36.0 size=     222kB time=00:00:12.96 bitrate= 140.6kbits/s speed=2.78x    frame=  395 fps= 76 q=34.0 size=     222kB time=00:00:14.43 bitrate= 126.3kbits/s speed=2.79x    [out#0/matroska @ 000001c24f69bc00] video:340kB audio:1kB subtitle:0kB other streams:0kB global headers:6kB muxing overhead: 4.154705%
+frame=  442 fps= 80 q=36.0 Lsize=     355kB time=00:00:14.66 bitrate= 198.3kbits/s speed=2.64x    
+x265 [info]: frame I:      2, Avg QP:26.00  kb/s: 22190.76
+x265 [info]: frame P:    127, Avg QP:33.49  kb/s: 211.15  
+x265 [info]: frame B:    313, Avg QP:35.67  kb/s: 38.27   
+x265 [info]: Weighted P-Frames: Y:0.0% UV:0.0%
+
+encoded 442 frames in 5.51s (80.23 fps), 188.18 kb/s, Avg QP:35.00
