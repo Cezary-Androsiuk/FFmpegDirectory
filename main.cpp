@@ -2,6 +2,9 @@
 #include <string>
 #include <filesystem>
 
+#include <unistd.h>
+#include <fcntl.h>
+
 // compile:
 // g++ main.cpp -o ffmpegAll.exe
 
@@ -118,4 +121,76 @@ int main(int argc, const char **argv)
         return 1;
     }
 
+
+
+    int file = open("output1.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (file == -1) {
+        // std::cerr << "Failed to open file for writing" << std::endl;
+        printf("X\n");
+        return 1;
+    }
+
+
+
+    printf("1 file... ");
+
+    std::string inFile = (directory / "1.mkv").string();
+    std::string outFile = (outDirectory / "1.mkv").string();
+    std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    
+    // Przechowywanie obecnego stdout i stderr
+    int stdout_backup = dup(STDOUT_FILENO);
+    int stderr_backup = dup(STDERR_FILENO);
+
+    // Przekierowanie stdout i stderr do pliku
+    dup2(file, STDOUT_FILENO);
+    dup2(file, STDERR_FILENO);
+
+    std::system(command.c_str());
+
+    // Przywrócenie stdout i stderr do terminala
+    dup2(stdout_backup, STDOUT_FILENO);
+    dup2(stderr_backup, STDERR_FILENO);
+
+    // Zamknięcie pliku i przywrócenie kopii deskryptorów
+    close(file);
+    close(stdout_backup);
+    close(stderr_backup);
+
+    printf("1 was finished\n");
+
+
+    file = open("output1.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (file == -1) {
+        // std::cerr << "Failed to open file for writing" << std::endl;
+        printf("X\n");
+        return 1;
+    }
+
+    printf("2 file... ");
+
+    inFile = (directory / "2.mkv").string();
+    outFile = (outDirectory / "2.mkv").string();
+    command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    
+    // Przechowywanie obecnego stdout i stderr
+    stdout_backup = dup(STDOUT_FILENO);
+    stderr_backup = dup(STDERR_FILENO);
+
+    // Przekierowanie stdout i stderr do pliku
+    dup2(file, STDOUT_FILENO);
+    dup2(file, STDERR_FILENO);
+    
+    std::system(command.c_str());
+
+    // Przywrócenie stdout i stderr do terminala
+    dup2(stdout_backup, STDOUT_FILENO);
+    dup2(stderr_backup, STDERR_FILENO);
+
+    // Zamknięcie pliku i przywrócenie kopii deskryptorów
+    close(file);
+    close(stdout_backup);
+    close(stderr_backup);
+
+    printf("2 was finished\n");
 }
