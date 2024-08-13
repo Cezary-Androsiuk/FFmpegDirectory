@@ -5,8 +5,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#include "cpp/FFExecute.hpp"
+
 // compile:
-// g++ main.cpp -o ffmpegAll.exe
+// g++ main.cpp cpp\FFExecute.cpp -o ffmpegAll.exe
 
 // instalation(add ffmpegAll.exe to PATH environment):
 // to do this,
@@ -103,35 +105,33 @@ bool createOutputDirectory(fs::path outDirectory)
     return true;
 }
 
-// bool execute
+// void changeOutToFile(const str &outputFile)
+// {
+//     output_file = open(outputFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+//     // this flags are open to write, will be created, his content will erased
+//     // 0644 are permisions that will be given to file
+//     if (output_file == -1) {
+//         // std::cerr << "Failed to open file for writing" << std::endl;
+//         printf("error while oppening wile %s\n", outputFile.c_str());
+//         return;
+//     }
 
-void changeOutToFile(const str &outputFile)
-{
-    output_file = open(outputFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    // this flags are open to write, will be created, his content will erased
-    // 0644 are permisions that will be given to file
-    if (output_file == -1) {
-        // std::cerr << "Failed to open file for writing" << std::endl;
-        printf("error while oppening wile %s\n", outputFile.c_str());
-        return;
-    }
+//     stdout_backup = dup(STDOUT_FILENO);
+//     stderr_backup = dup(STDERR_FILENO);
 
-    stdout_backup = dup(STDOUT_FILENO);
-    stderr_backup = dup(STDERR_FILENO);
+//     dup2(output_file, STDOUT_FILENO);
+//     dup2(output_file, STDERR_FILENO);
+// }
 
-    dup2(output_file, STDOUT_FILENO);
-    dup2(output_file, STDERR_FILENO);
-}
+// void restoreOutToCMD()
+// {
+//     dup2(stdout_backup, STDOUT_FILENO);
+//     dup2(stderr_backup, STDERR_FILENO);
 
-void restoreOutToCMD()
-{
-    dup2(stdout_backup, STDOUT_FILENO);
-    dup2(stderr_backup, STDERR_FILENO);
-
-    close(output_file);
-    close(stdout_backup);
-    close(stderr_backup);
-}
+//     close(output_file);
+//     close(stdout_backup);
+//     close(stderr_backup);
+// }
 
 int main(int argc, const char **argv)
 {
@@ -156,43 +156,45 @@ int main(int argc, const char **argv)
 
     std::string inFile = (directory / "1.mkv").string();
     std::string outFile = (outDirectory / "1.mkv").string();
-    std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
-    
-    printf("1 file... ");
+    // std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    FFExecute::runFFmpeg(inFile, outFile);
+    // printf("1 file... ");
 
-    changeOutToFile("output1.txt");
-    std::system(command.c_str());
-    restoreOutToCMD();
+    // changeOutToFile("output1.txt");
+    // std::system(command.c_str());
+    // restoreOutToCMD();
 
-    printf("1 was finished\n");
+    // printf("1 was finished\n");
 
 
 
 
     inFile = (directory / "2.mkv").string();
     outFile = (outDirectory / "2.mkv").string();
-    command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    // command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    FFExecute::runFFmpeg(inFile, outFile);
     
-    printf("2 file... ");
+    // printf("2 file... ");
     
-    changeOutToFile("output2.txt");
-    std::system(command.c_str());
-    restoreOutToCMD();
+    // changeOutToFile("output2.txt");
+    // std::system(command.c_str());
+    // restoreOutToCMD();
 
-    printf("2 was finished\n");
+    // printf("2 was finished\n");
 
 
 
 
     inFile = (directory / "3.mkv").string();
     outFile = (outDirectory / "3.mkv").string();
-    command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    // command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    FFExecute::runFFmpeg(inFile, outFile);
     
-    printf("3 file... ");
+    // printf("3 file... ");
     
-    changeOutToFile("output3.txt");
-    std::system(command.c_str());
-    restoreOutToCMD();
+    // changeOutToFile("output3.txt");
+    // std::system(command.c_str());
+    // restoreOutToCMD();
 
-    printf("3 was finished\n");
+    // printf("3 was finished\n");
 }
