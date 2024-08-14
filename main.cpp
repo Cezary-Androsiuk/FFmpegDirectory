@@ -6,10 +6,9 @@
 #include <fcntl.h>
 
 #include "cpp/FFExecute.hpp"
-#include "cpp/Log.hpp"
 
 // compile:
-// g++ main.cpp cpp\FFExecute.cpp cpp\Log.cpp -o ffmpegAll.exe
+// g++ main.cpp cpp\FFExecute.cpp -o ffmpegAll.exe
 
 // instalation(add ffmpegAll.exe to PATH environment):
 // to do this,
@@ -139,18 +138,17 @@ int main(int argc, const char **argv)
     fs::path directory;
     if(!argsValid(argc, argv, &directory))
     {
-        pW((COLOR_RESET "Arguments are not valid:" COLOR_RED " %s" COLOR_RESET), lastError.c_str());
-        W("Expected none or one argument, which is path to directory!");
+        fprintf(stderr, COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
+        fprintf(stderr, "Expected none or one argument, which is path to directory!\n");
         return 1;
     }
 
-    pW("selected directory: %s", directory.string().c_str());
+    printf("selected directory: %s\n", directory.string().c_str());
     
-    printf("1"); fflush(stdout);
     fs::path outDirectory( directory / "ffmpeg-h.265" );
     if(!createOutputDirectory( outDirectory ))
     {
-        pW(COLOR_RESET "Failed while creating output directory:" COLOR_RED " %s" COLOR_RESET, lastError.c_str());
+        fprintf(stderr, COLOR_RESET "Failed while creating output directory:" COLOR_RED " %s" COLOR_RESET, lastError.c_str());
         return 1;
     }
 

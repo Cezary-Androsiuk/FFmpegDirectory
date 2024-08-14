@@ -1,0 +1,7 @@
+Starting new ffmpeg
+  in:  D:\vscode\c++\just_small_projects\ffmpeg_all_in_given_directory\test\1.mkv
+  out: D:\vscode\c++\just_small_projects\ffmpeg_all_in_given_directory\test\ffmpeg-h.265\1.mkv
+
+Starting new ffmpeg
+  in:  D:\vscode\c++\just_small_projects\ffmpeg_all_in_given_directory\test\2.mkv
+  out: D:\vscode\c++\just_small_projects\ffmpeg_all_in_given_directory\test\ffmpeg-h.265\2.mkv
