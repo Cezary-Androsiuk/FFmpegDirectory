@@ -86,7 +86,11 @@ void Log::log(std::string content)
 
 void Log::print(std::string content)
 {
+#if NEW_LINE_AT_THE_END
     printf("%s\n", content.c_str());
+#else
+    printf("%s", content.c_str());
+#endif
 }
 
 void Log::saveFile(std::string content)

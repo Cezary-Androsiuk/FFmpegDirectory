@@ -1,38 +1,15 @@
 #include "FFExecute.hpp"
 
 size_t FFExecute::m_duration;
+size_t FFExecute::m_lastProgress;
 
 void FFExecute::handleOutput(cstr line)
 {
+    // printf("%s\n", line.c_str());
     // save to file function...
 
-    if(m_duration == durationNotSet)
-    {
-        constexpr const char *durationText = "Duration: ";
-        constexpr int durationTextSize = 10; // sizeof not work here
-        constexpr int strtimeTextSize = 11;
-        size_t durationTextPos = line.find(durationText);
-        if(durationTextPos == str::npos)
-            return;
-        
-        // example line: "  Duration: 00:00:14.77, start: 0.000000, bitrate: 373 kb/s"
-        str strtime = line.substr(durationTextPos + durationTextSize, strtimeTextSize); // gives "00:00:14.77"
-        m_duration = FFExecute::getInterpretationOfTime(strtime);
-        return;
-    }
+    FFExecute::printOutputToCMD(line);
 
-    // duration is already readed
-
-    constexpr const char *timeText = "kB time="; // kb are for better match
-    constexpr int timeTextSize = 8; // sizeof not work here
-    constexpr int strtimeTextSize = 11;
-    size_t timeTextPos = line.find("kB time=");
-    if(timeTextPos == str::npos)
-        return;
-        
-    str strtime = line.substr(timeTextPos + timeTextSize, strtimeTextSize);
-    size_t timePassed = FFExecute::getInterpretationOfTime(strtime);
-    printf("time left: %2d%%\n", (timePassed * 100)/m_duration);
     // printf("out: %s\n", line.c_str());
 }
 void FFExecute::saveOutputToFile(cstr line)
@@ -41,7 +18,34 @@ void FFExecute::saveOutputToFile(cstr line)
 }
 void FFExecute::printOutputToCMD(cstr line)
 {
+    if(m_duration == durationNotSet)
+    {
+        constexpr const char durationText[] = "Duration: ";
+        // constexpr int durationTextSize = 10;
+        constexpr int strtimeTextSize = 11;
+        size_t durationTextPos = line.find(durationText);
+        if(durationTextPos == str::npos)
+            return;
+        
+        // example line: "  Duration: 00:00:14.77, start: 0.000000, bitrate: 373 kb/s"
+        str strtime = line.substr(durationTextPos + sizeof(durationText), strtimeTextSize); // gives "00:00:14.77"
+        m_duration = FFExecute::getInterpretationOfTime(strtime);
+        m_lastProgress = 0;
+        return;
+    }
 
+    // duration is already readed
+
+    constexpr const char timeText[] = "kB time="; // kb are for better match
+    // constexpr int timeTextSize = 8; // sizeof not work here
+    constexpr int strtimeTextSize = 11;
+    size_t timeTextPos = line.find("kB time=");
+    if(timeTextPos == str::npos)
+        return;
+        
+    str strtime = line.substr(timeTextPos + sizeof(timeText), strtimeTextSize);
+    size_t timePassed = FFExecute::getInterpretationOfTime(strtime);
+    printf("time left: %2d%%\n", (timePassed * 100)/m_duration);
 }
 
 size_t FFExecute::getInterpretationOfTime(cstr strtime)
@@ -75,10 +79,10 @@ void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
     char buffer[128];
 
     str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
-    command += "2>&1"; // move stderr to stdout (connect them)
+    command += " 2>&1"; // move stderr to stdout (connect them)
+    I("executing command: " + command);
 
-    
-    printf("starting new ffmpeg...\n");
+    I("starting new ffmpeg...");
 
     FILE* pipe = popen(command.c_str(), "r");
     if (!pipe) {
@@ -90,8 +94,8 @@ void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
         FFExecute::handleOutput(str(buffer));
     }
 
-    pclose(pipe);
-    printf("ffmpeg finished!\n");
+    int returnCode = pclose(pipe);
+    printf("ffmpeg finished with status: %d\n", returnCode);
 
     return;
 }

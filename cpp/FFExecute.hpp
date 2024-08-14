@@ -23,6 +23,7 @@ public:
 
 private:
     static size_t m_duration;
+    static size_t m_lastProgress;
 };
 
 #endif

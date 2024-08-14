@@ -139,17 +139,18 @@ int main(int argc, const char **argv)
     fs::path directory;
     if(!argsValid(argc, argv, &directory))
     {
-        pW((COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET), lastError.c_str());
-        W("Expected none or one argument, which is path to directory!\n");
+        pW((COLOR_RESET "Arguments are not valid:" COLOR_RED " %s" COLOR_RESET), lastError.c_str());
+        W("Expected none or one argument, which is path to directory!");
         return 1;
     }
 
-    pW("selected directory: %s\n", directory.string().c_str());
+    pW("selected directory: %s", directory.string().c_str());
     
+    printf("1"); fflush(stdout);
     fs::path outDirectory( directory / "ffmpeg-h.265" );
     if(!createOutputDirectory( outDirectory ))
     {
-        pW(COLOR_RESET "Failed while creating output directory:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
+        pW(COLOR_RESET "Failed while creating output directory:" COLOR_RED " %s" COLOR_RESET, lastError.c_str());
         return 1;
     }
 
@@ -198,4 +199,8 @@ int main(int argc, const char **argv)
     // restoreOutToCMD();
 
     // printf("3 was finished\n");
+
+
+
+    /// remove output directory if was empty
 }
