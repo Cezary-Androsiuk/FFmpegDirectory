@@ -5,6 +5,8 @@
 #include <string>
 #include <sstream> // for getInterpretationOfTime
 
+#include "Log.hpp"
+
 typedef std::string str;
 typedef const std::string &cstr;
 

@@ -77,6 +77,7 @@ void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
     str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     command += "2>&1"; // move stderr to stdout (connect them)
 
+    
     printf("starting new ffmpeg...\n");
 
     FILE* pipe = popen(command.c_str(), "r");

@@ -136,6 +136,10 @@ bool createOutputDirectory(fs::path outDirectory)
 
 int main(int argc, const char **argv)
 {
+    pI("starting %d %d\n", 1, 2);
+    I("Some text");
+    I("Some text");
+    return 0;
     fs::path directory;
     if(!argsValid(argc, argv, &directory))
     {

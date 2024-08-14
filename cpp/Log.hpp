@@ -19,6 +19,23 @@
 //////////////////////////////////////////////////
 
 
+//////////////////// PRINTF DEBUG ////////////////////
+#define __p(x, func, ...){\
+    size_t s = snprintf(nullptr, 0, x, __VA_ARGS__);\
+    char *buffer = new char(s+1);\
+    if(buffer == nullptr) {E("Definition __p failed!");}\
+    else {\
+        snprintf(buffer, s+1, x, __VA_ARGS__);\
+        func(__PRETTY_FUNCTION__, buffer);\
+    }\
+}
+#define pI(x, ...) __p( x, Log::info    , __VA_ARGS__ )
+#define pW(x, ...) __p( x, Log::warning , __VA_ARGS__ )
+#define pE(x, ...) __p( x, Log::error   , __VA_ARGS__ )
+#define pD(x, ...) __p( x, Log::debug   , __VA_ARGS__ )
+//////////////////////////////////////////////////
+
+
 #define LOG_FILE "LogHistory.log"
 #define MAX_LOG_FILE_SIZE 209'715'200 /// in bytes /// value above what, log file will be trimmed to TRIM_LOG_FILE_SIZE size
 #define TRIM_LOG_FILE_SIZE 10'485'760 /// in bytes
@@ -43,7 +60,6 @@ private:
     static void log(std::string content);
     static void print(std::string content);
     static void saveFile(std::string content);
-    static void addSession(std::string content);
 
     static void fileSizeProtection();
 
@@ -53,7 +69,6 @@ public:
         static std::string vectorStringsToString(std::vector<std::string> list);
     };
 
-    static std::string m_sessionLogs;
     static bool fileSizeProtectionExecuted;
 };
 

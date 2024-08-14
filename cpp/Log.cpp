@@ -1,6 +1,5 @@
 #include "Log.hpp"
 
-std::string Log::m_sessionLogs = std::string();
 bool Log::fileSizeProtectionExecuted = false;
 
 void Log::info(std::string func, std::string log)
@@ -30,8 +29,8 @@ std::string Log::time()
     time_t now = tv.tv_sec;
     struct tm* time = localtime(&now);
 
-    std::string buffer;
-    sprintf(buffer.data(), "%d-%02d-%02d %02d:%02d:%02d.%03d",
+    char buffer[32];
+    sprintf(buffer, "%d-%02d-%02d %02d:%02d:%02d.%03d",
         1900 + time->tm_year,
         1 + time->tm_mon,
         time->tm_mday,
@@ -40,7 +39,8 @@ std::string Log::time()
         time->tm_sec,
         tv.tv_usec / 1000
     );
-    return buffer;
+    
+    return std::string(buffer);
 }
 
 std::string Log::buildPrefix(std::string time, std::string type, std::string func)
@@ -77,16 +77,16 @@ std::string Log::buildPrefix(std::string time, std::string type, std::string fun
 
 void Log::log(std::string content)
 {
-    Log::fileSizeProtection();
+    // printf("1\n"); fflush(stdout);
+    // Log::fileSizeProtection(); // something mysterious is happening here :/
 
     Log::print(content);
     Log::saveFile(content);
-    Log::addSession(content);
 }
 
 void Log::print(std::string content)
 {
-    printf("%s", content.c_str());
+    printf("%s\n", content.c_str());
 }
 
 void Log::saveFile(std::string content)
@@ -98,22 +98,20 @@ void Log::saveFile(std::string content)
         return;
     }
 
-    ofile << content;
+    ofile << content << "\n";
     ofile.close();
-}
-
-void Log::addSession(std::string content)
-{
-    Log::m_sessionLogs += content + "\n";
 }
 
 void Log::fileSizeProtection()
 {
+    printf("2\n"); fflush(stdout);
     if(Log::fileSizeProtectionExecuted)
         return;
+    printf("3\n"); fflush(stdout);
 
     Log::fileSizeProtectionExecuted = true;
 
+    printf("4\n"); fflush(stdout);
     /// get log file size
     if(!std::filesystem::exists(LOG_FILE))
         return;
@@ -131,22 +129,25 @@ void Log::fileSizeProtection()
         return;
     }
     ifile.seekg(fileSize - TRIM_LOG_FILE_SIZE);
-    char trimmedData[TRIM_LOG_FILE_SIZE];
-    ifile.read(trimmedData, TRIM_LOG_FILE_SIZE);
+    //! //////////////////////////////////////////////////////// //! 
+    //! REQUIRES SAVE WHILE READING, IDK WHY CAN'T ALOCATE 10MB  //! 
+    //! //////////////////////////////////////////////////////// //! 
+    // char trimmedData[TRIM_LOG_FILE_SIZE]; 
+    // ifile.read(trimmedData, TRIM_LOG_FILE_SIZE);
     ifile.close();
     
-    std::filesystem::remove(LOG_FILE); // missing method moveToTrash, that exist in Qt :c
+    // std::filesystem::remove(LOG_FILE); // missing method moveToTrash, that exist in Qt :c
 
-    std::ofstream ofile(LOG_FILE);
-    if(!ofile.good())
-    {
-        fprintf(stderr, "Error while recreating, smaller log file!\n");
-        return;
-    }
-    ofile.write(trimmedData, TRIM_LOG_FILE_SIZE);
-    ofile.close();
+    // std::ofstream ofile(LOG_FILE);
+    // if(!ofile.good())
+    // {
+    //     fprintf(stderr, "Error while recreating, smaller log file!\n");
+    //     return;
+    // }
+    // ofile.write(trimmedData, TRIM_LOG_FILE_SIZE);
+    // ofile.close();
 
-    printf("Trimmed log file!\n");
+    // printf("Trimmed log file!\n");
 }
 
 std::string Log::Convert::vectorStringsToString(std::vector<std::string> list)
