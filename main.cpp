@@ -136,24 +136,20 @@ bool createOutputDirectory(fs::path outDirectory)
 
 int main(int argc, const char **argv)
 {
-    pI("starting %d %d\n", 1, 2);
-    I("Some text");
-    I("Some text");
-    return 0;
     fs::path directory;
     if(!argsValid(argc, argv, &directory))
     {
-        printf(COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
-        printf("Expected none or one argument, which is path to directory!\n");
+        pW((COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET), lastError.c_str());
+        W("Expected none or one argument, which is path to directory!\n");
         return 1;
     }
 
-    printf("selected directory: %s\n", directory.string().c_str());
+    pW("selected directory: %s\n", directory.string().c_str());
     
     fs::path outDirectory( directory / "ffmpeg-h.265" );
     if(!createOutputDirectory( outDirectory ))
     {
-        printf(COLOR_RESET "Failed while creating output directory:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
+        pW(COLOR_RESET "Failed while creating output directory:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
         return 1;
     }
 

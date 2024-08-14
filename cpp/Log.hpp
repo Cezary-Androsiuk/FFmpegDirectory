@@ -20,14 +20,15 @@
 
 
 //////////////////// PRINTF DEBUG ////////////////////
-#define __p(x, func, ...){\
-    size_t s = snprintf(nullptr, 0, x, __VA_ARGS__);\
-    char *buffer = new char(s+1);\
-    if(buffer == nullptr) {E("Definition __p failed!");}\
-    else {\
-        snprintf(buffer, s+1, x, __VA_ARGS__);\
-        func(__PRETTY_FUNCTION__, buffer);\
-    }\
+#define __p(x, func, ...){                                              \
+    size_t s = snprintf(nullptr, 0, x __VA_OPT__(,) __VA_ARGS__ );      \
+    /*__VA_OPT__() handles, when there no arguments in __VA_ARGS__*/    \
+    char *buffer = new char(s+1);                                       \
+    if(buffer == nullptr) {E("Definition __p failed!");}                \
+    else {                                                              \
+        snprintf(buffer, s+1, x __VA_OPT__(,) __VA_ARGS__);             \
+        func(__PRETTY_FUNCTION__, buffer);}                             \
+    delete[] buffer;                                                    \
 }
 #define pI(x, ...) __p( x, Log::info    , __VA_ARGS__ )
 #define pW(x, ...) __p( x, Log::warning , __VA_ARGS__ )
