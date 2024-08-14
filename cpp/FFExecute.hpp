@@ -13,6 +13,8 @@ constexpr size_t durationNotSet = -1;
 class FFExecute{
 
     static void handleOutput(cstr line);
+    static void saveOutputToFile(cstr line);
+    static void printOutputToCMD(cstr line);
     static size_t getInterpretationOfTime(cstr strtime);
 public:
     static void runFFmpeg(cstr inFile, cstr outFile);

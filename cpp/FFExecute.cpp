@@ -23,7 +23,7 @@ void FFExecute::handleOutput(cstr line)
 
     // duration is already readed
 
-    constexpr const char *timeText = "kB time="; // kb are for better fit
+    constexpr const char *timeText = "kB time="; // kb are for better match
     constexpr int timeTextSize = 8; // sizeof not work here
     constexpr int strtimeTextSize = 11;
     size_t timeTextPos = line.find("kB time=");
@@ -34,6 +34,14 @@ void FFExecute::handleOutput(cstr line)
     size_t timePassed = FFExecute::getInterpretationOfTime(strtime);
     printf("time left: %2d%%\n", (timePassed * 100)/m_duration);
     // printf("out: %s\n", line.c_str());
+}
+void FFExecute::saveOutputToFile(cstr line)
+{
+
+}
+void FFExecute::printOutputToCMD(cstr line)
+{
+
 }
 
 size_t FFExecute::getInterpretationOfTime(cstr strtime)

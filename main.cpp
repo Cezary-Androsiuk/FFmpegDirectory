@@ -6,9 +6,10 @@
 #include <fcntl.h>
 
 #include "cpp/FFExecute.hpp"
+#include "cpp/Log.hpp"
 
 // compile:
-// g++ main.cpp cpp\FFExecute.cpp -o ffmpegAll.exe
+// g++ main.cpp cpp\FFExecute.cpp cpp\Log.cpp -o ffmpegAll.exe
 
 // instalation(add ffmpegAll.exe to PATH environment):
 // to do this,
