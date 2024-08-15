@@ -6,7 +6,6 @@ std::ofstream FFExecute::m_ffOFile;
 str FFExecute::m_ffOFileName;
 size_t FFExecute::m_duration;
 int FFExecute::m_sizeofDuration;
-size_t FFExecute::m_lastProgress;
 
 void FFExecute::handleOutput(cstr line)
 {
@@ -18,20 +17,6 @@ void FFExecute::printOutputToCMD(cstr line)
 {
     constexpr int strtimeTextSize = 11;
 
-    if(m_duration == durationNotSet)
-    {
-        constexpr const char durationText[] = "Duration: ";
-        size_t durationTextPos = line.find(durationText);
-        if(durationTextPos == str::npos)
-            return;
-        
-        // example line: "  Duration: 00:00:14.77, start: 0.000000, bitrate: 373 kb/s"
-        str strtime = line.substr(durationTextPos + sizeof(durationText), strtimeTextSize); // gives "00:00:14.77"
-        m_duration = FFExecute::getInterpretationOfTime(strtime);
-        m_lastProgress = 0;
-        return;
-    }
-
     constexpr const char timeText[] = "kB time="; // kb are for better match
     size_t timeTextPos = line.find(timeText);
     if(timeTextPos == str::npos)
@@ -40,15 +25,10 @@ void FFExecute::printOutputToCMD(cstr line)
     str strtime = line.substr(timeTextPos + sizeof(timeText), strtimeTextSize);
     size_t timePassed = FFExecute::getInterpretationOfTime(strtime);
 
-    // clear line (windows os only)
-    printf("\r"); // move to start
-    printf("%s", std::string(17 + m_sizeofDuration * 2, ' ').c_str());
-    printf("\r"); // move to start
-
-    // printf("    progress: %s", stringProgress(timePassed).c_str());
-
-    // use m_lastProgress
-    printf("    progress: % 4d/% 4d", timePassed, m_duration);
+    FFExecute::clearLine(15+2 + m_sizeofDuration * 2);
+    str progressValue = str(m_sizeofDuration-FFExecute::sizeofDuration(timePassed), ' ');
+    printf("    progress: %s%d/%d", progressValue.c_str(), timePassed, m_duration);
+    fflush(stdout);
 }
 
 size_t FFExecute::getInterpretationOfTime(cstr strtime)
@@ -131,35 +111,61 @@ str FFExecute::stringProgress(int progress)
     return progressStr + "/" + std::to_string(m_duration);
 }
 
-str FFExecute::changeExtToMP4(cstr pathToFile)
+void FFExecute::clearLine(int len)
 {
-    size_t dotPos = pathToFile.find_last_of('.');
-    return pathToFile.substr(0, dotPos+1) + "mp4";
+    // clear line (windows os only)
+    printf("\r"); // move to start
+    printf("%s", std::string(len, ' ').c_str());
+    printf("\r"); // move to start
 }
 
-void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
+void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
 {
     // test if inFile extension is valid 
     // test if video is h.265 with ffprobe
     // set m_duration, by using ffprobe
-
-    m_duration = durationNotSet;
-    m_sizeofDuration = FFExecute::sizeofDuration(m_duration);
-    FFExecute::openFFOFile();
-
-    str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
-    command += " 2>&1"; // move stderr to stdout (connect them)
+    /// add class variable that stores skipped files, due to file already has h.265, that will show "finished files 10/12 (2 skipped due to h.265)" /// idk what will be better, leaving that file alone, copying (this one seems the best) or moving it to output directory
     
     printf("  Starting new FFmpeg\n");          FFExecute::addTextToFFOFile("  Starting new ffmpeg\n");
     printf("    in:  %s\n", inFile.c_str());    FFExecute::addTextToFFOFile("    in:  " + inFile + "\n");
     printf("    out: %s\n", outFile.c_str());   FFExecute::addTextToFFOFile("    out: " + outFile + "\n");
 
-    // printf("    progress: %s", stringProgress(0).c_str()); // start display info /// / (duration size but 0)/m_duration 
-    printf("    progress:    0/....");
+    if(!FFTester::testIfH265(inFile))
+    {
+        if(FFTester::errorOccur())
+        {
+            fprintf(stderr, "    error occur while checking if file is H265: %s\n", 
+                FFTester::getErrorInfo().c_str());
+            FFExecute::addTextToFFOFile("    error occur while checking if file is H265: " + 
+                FFTester::getErrorInfo() + "\n");
+            
+            return;
+        }
+        // in file is already H265 format!
+        fprintf(stderr, "    inFile is already H265! Skipping!\n");
+        FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n");
+
+        // possible actins here:
+        // 1: skip inFile as it is      <
+        // 2: copy inFile to outFile    
+        // 3: move inFile to outFile    
+
+        return;
+    }
+
+    m_duration = FFExecute::getInterpretationOfTime(FFTester::getStrDuration());
+    m_sizeofDuration = FFExecute::sizeofDuration(m_duration);
+
+    str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
+    command += " 2>&1"; // move stderr to stdout (connect them)
+    
+    str progressValue = str(m_sizeofDuration-1, ' ');
+    printf("    progress: %s0/%d", progressValue.c_str(), m_duration);
 
     FILE* pipe = pipeOpen(command.c_str(), "r");
     if (!pipe) {
-        fprintf(stderr, "Cannot open the pipe!\n");
+        fprintf(stderr, "    Cannot open the pipe!\n");
+        FFExecute::addTextToFFOFile("    Cannot open the pipe!\n");
         return;
     }
 
@@ -172,21 +178,32 @@ void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
     ++ m_performedFFmpegs;
 
 
+    FFExecute::clearLine(15+2 + m_sizeofDuration * 2);
     if(ffmpegExitCode) // not equal 0 - error occur in ffmpeg
     {
-        printf("    progress: % 4d/% 4d", m_duration, m_duration);
-        printf("\n"); // handle output, does not adds that
-        printf("    FFmpeg " COLOR_RED "failed" COLOR_RESET " with code %d!\n", ffmpegExitCode);
+        printf("    progress: %d/%d\n", m_duration, m_duration);
+        fprintf(stderr, "    FFmpeg " COLOR_RED "failed" COLOR_RESET " with code %d!\n", ffmpegExitCode);
         FFExecute::addTextToFFOFile("    FFmpeg failed with code " + std::to_string(ffmpegExitCode) + "!\n");
     }
     else // no error - ffmpeg finished correctly
     {
-        printf("    progress: % 4d/% 4d", m_duration, m_duration);
-        printf("\n"); // handle output, does not adds that
+        printf("    progress: %d/%d\n", m_duration, m_duration);
         ++ m_correctlyPerformedFFmpegs;
-        printf("    FFmpeg " COLOR_GREEN "finished" COLOR_RESET "!\n\n");
+        fprintf(stderr, "    FFmpeg " COLOR_GREEN "finished" COLOR_RESET "!\n\n");
         FFExecute::addTextToFFOFile("    FFmpeg finished!\n\n");
     }
 
+}
+
+str FFExecute::changeExtToMP4(cstr pathToFile)
+{
+    size_t dotPos = pathToFile.find_last_of('.');
+    return pathToFile.substr(0, dotPos+1) + "mp4";
+}
+
+void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
+{
+    FFExecute::openFFOFile();
+    FFExecute::_runFFmpeg(inFile, outFile);
     FFExecute::closeFFOFile();
 }

@@ -7,6 +7,8 @@
 #include <ctime>
 #include <fstream>
 
+#include "FFTester.hpp"
+
 typedef std::string str;
 typedef const std::string &cstr;
 
@@ -16,14 +18,13 @@ typedef const std::string &cstr;
 #define COLOR_RED     "\033[31m"
 #define COLOR_GREEN   "\033[32m"
 
-constexpr size_t durationNotSet = -1;
-
 // ,,Since a Microsoft compiler is used, an underscore is needed at the beginning''
 // https://stackoverflow.com/questions/38876218/execute-a-command-and-get-output-popen-and-pclose-undefined
 #define pipeOpen(...) _popen(__VA_ARGS__)
 #define pipeClose(...) _pclose(__VA_ARGS__)
 
-class FFExecute{
+class FFExecute
+{
     static void handleOutput(cstr line);
     static void printOutputToCMD(cstr line);
     static size_t getInterpretationOfTime(cstr strtime);
@@ -33,7 +34,9 @@ class FFExecute{
     static void closeFFOFile(); // FFOFile is FFmpegOutputFile
     static int sizeofDuration(int number);
     static str stringProgress(int progress);
+    static void clearLine(int len);
 
+    static void _runFFmpeg(cstr inFile, cstr outFile);
 public:
     static str changeExtToMP4(cstr pathToFile);
     static void runFFmpeg(cstr inFile, cstr outFile);
@@ -45,7 +48,6 @@ private:
     static str m_ffOFileName; // ffOFile is FFmpegOutputFile
     static size_t m_duration;
     static int m_sizeofDuration;
-    static size_t m_lastProgress;
 };
 
 #endif
