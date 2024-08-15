@@ -1,14 +1,16 @@
 #include <cstdio>
 #include <string>
+#include <vector>
 #include <filesystem>
 
 #include <unistd.h>
 #include <fcntl.h>
 
 #include "cpp/FFExecute.hpp"
+#include "cpp/ListMaker.hpp"
 
 // compile:
-// g++ main.cpp cpp\FFExecute.cpp -o ffmpegAll.exe
+// g++ main.cpp cpp\FFExecute.cpp cpp\FFTester.cpp cpp\ListMaker.hpp -o ffmpegAll.exe
 
 // instalation(add ffmpegAll.exe to PATH environment):
 // to do this,
@@ -20,6 +22,8 @@
 
 namespace fs = std::filesystem;
 typedef std::string str;
+typedef std::vector<str> vstr;
+typedef std::vector<fs::path> vpath;
 
 
 str lastError;
@@ -104,6 +108,11 @@ bool createOutputDirectory(fs::path outDirectory)
 
     return true;
 }
+
+str createOutputFile(cpath inFile)
+{
+
+}
  
 int main(int argc, const char **argv)
 {
@@ -125,8 +134,17 @@ int main(int argc, const char **argv)
     }
 
 
+    vstr acceptableExtensions = {"mkv", "mp4"};
+    vpath listOfFiles = ListMaker::listOfFiles(directory, acceptableExtensions);
 
-    std::string inFile = (directory / "1.mkv").string();
+    for(const auto &inFile : listOfFiles)
+    {
+        str outFile = createOutputFile(inFile);
+        FFExecute::runFFmpeg(inFile.string(), outFile);
+    }
+
+
+    std::string inFile = (directory / "1.mp4").string();
     std::string outFile = (outDirectory / "1.mp4").string();
     // std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     FFExecute::runFFmpeg(inFile, outFile);
