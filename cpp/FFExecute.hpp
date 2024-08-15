@@ -12,6 +12,10 @@ typedef const std::string &cstr;
 
 #define FFMPEG_OUTPUT_FILE(time) ("FFmpeg_output-" + time + ".txt") 
 
+#define COLOR_RESET   "\033[0m"
+#define COLOR_RED     "\033[31m"
+#define COLOR_GREEN   "\033[32m"
+
 constexpr size_t durationNotSet = -1;
 
 // ,,Since a Microsoft compiler is used, an underscore is needed at the beginning''
@@ -27,16 +31,20 @@ class FFExecute{
     static void openFFOFile(); // FFOFile is FFmpegOutputFile
     static void addTextToFFOFile(cstr ffmpegOutput); // FFOFile is FFmpegOutputFile
     static void closeFFOFile(); // FFOFile is FFmpegOutputFile
+    static int sizeofDuration(int number);
+    static str stringProgress(int progress);
 
 public:
+    static str changeExtToMP4(cstr pathToFile);
     static void runFFmpeg(cstr inFile, cstr outFile);
 
 private:
     static int m_performedFFmpegs;
     static int m_correctlyPerformedFFmpegs;
-    static std::ofstream m_ffOFile;
+    static std::ofstream m_ffOFile; // ffOFile is FFmpegOutputFile
     static str m_ffOFileName; // ffOFile is FFmpegOutputFile
     static size_t m_duration;
+    static int m_sizeofDuration;
     static size_t m_lastProgress;
 };
 

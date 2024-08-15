@@ -104,35 +104,7 @@ bool createOutputDirectory(fs::path outDirectory)
 
     return true;
 }
-
-// void changeOutToFile(const str &outputFile)
-// {
-//     output_file = open(outputFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-//     // this flags are open to write, will be created, his content will erased
-//     // 0644 are permisions that will be given to file
-//     if (output_file == -1) {
-//         // std::cerr << "Failed to open file for writing" << std::endl;
-//         printf("error while oppening wile %s\n", outputFile.c_str());
-//         return;
-//     }
-
-//     stdout_backup = dup(STDOUT_FILENO);
-//     stderr_backup = dup(STDERR_FILENO);
-
-//     dup2(output_file, STDOUT_FILENO);
-//     dup2(output_file, STDERR_FILENO);
-// }
-
-// void restoreOutToCMD()
-// {
-//     dup2(stdout_backup, STDOUT_FILENO);
-//     dup2(stderr_backup, STDERR_FILENO);
-
-//     close(output_file);
-//     close(stdout_backup);
-//     close(stderr_backup);
-// }
-
+ 
 int main(int argc, const char **argv)
 {
     fs::path directory;
@@ -155,7 +127,7 @@ int main(int argc, const char **argv)
 
 
     std::string inFile = (directory / "1.mkv").string();
-    std::string outFile = (outDirectory / "1.mkv").string();
+    std::string outFile = (outDirectory / "1.mp4").string();
     // std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     FFExecute::runFFmpeg(inFile, outFile);
     // printf("1 file... ");
@@ -170,7 +142,7 @@ int main(int argc, const char **argv)
 
 
     inFile = (directory / "2.mkv").string();
-    outFile = (outDirectory / "2.mkv").string();
+    outFile = (outDirectory / "2.mp4").string();
     // command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     FFExecute::runFFmpeg(inFile, outFile);
     
@@ -186,7 +158,7 @@ int main(int argc, const char **argv)
 
 
     inFile = (directory / "3.mkv").string();
-    outFile = (outDirectory / "3.mkv").string();
+    outFile = (outDirectory / "3.mp4").string();
     // command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     FFExecute::runFFmpeg(inFile, outFile);
     
