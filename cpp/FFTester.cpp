@@ -60,7 +60,7 @@ bool FFTester::testIfH265(cstr filePath)
         return false;
     }
 
-    char buffer[128];
+    char buffer[256];
     while (fgets(buffer, sizeof(buffer), pipe) != nullptr)
     {
         if(m_verificationStatus == VerificationStatus::InVerification)

@@ -2,10 +2,14 @@
 
 int FFExecute::m_performedFFmpegs = 0;
 int FFExecute::m_correctlyPerformedFFmpegs = 0;
+int FFExecute::m_failedFFmpegs = 0;
+int FFExecute::m_skippedFFmpegs = 0;
+int FFExecute::m_totalFFmpegsToPerform = 0;
+
 std::ofstream FFExecute::m_ffOFile;
 str FFExecute::m_ffOFileName;
 size_t FFExecute::m_duration;
-int FFExecute::m_sizeofDuration;
+int FFExecute::m_lengthOfDuration = 0;
 
 void FFExecute::handleOutput(cstr line)
 {
@@ -23,12 +27,9 @@ void FFExecute::printOutputToCMD(cstr line)
         return;
         
     str strtime = line.substr(timeTextPos + sizeof(timeText), strtimeTextSize);
-    size_t timePassed = FFExecute::getInterpretationOfTime(strtime);
+    int timePassed = FFExecute::getInterpretationOfTime(strtime);
 
-    FFExecute::clearLine(15+2 + m_sizeofDuration * 2);
-    str progressValue = str(m_sizeofDuration-FFExecute::sizeofDuration(timePassed), ' ');
-    printf("    progress: %s%d/%d", progressValue.c_str(), timePassed, m_duration);
-    fflush(stdout);
+    FFExecute::printProgress(timePassed);
 }
 
 size_t FFExecute::getInterpretationOfTime(cstr strtime)
@@ -86,7 +87,7 @@ void FFExecute::openFFOFile()
 void FFExecute::addTextToFFOFile(cstr ffmpegOutput)
 {
     if(!m_ffOFile.good())
-        printf("%s", ffmpegOutput.c_str());
+        printf("ffmpeg output file failed, output text: %s", ffmpegOutput.c_str());
     else
         m_ffOFile << ffmpegOutput;
 }
@@ -97,18 +98,9 @@ void FFExecute::closeFFOFile()
     m_ffOFile.close();
 }
 
-int FFExecute::sizeofDuration(int number)
+int FFExecute::lengthOfNumber(int number)
 {
     return std::to_string(number).size();
-}
-
-str FFExecute::stringProgress(int progress)
-{
-    // create format __23/0123, or _123/0123
-    str progressStr = std::to_string(progress);
-    int sizeofProgress = progressStr.size();
-    progressStr = std::string(m_sizeofDuration - sizeofProgress, ' ') + progressStr;
-    return progressStr + "/" + std::to_string(m_duration);
 }
 
 void FFExecute::clearLine(int len)
@@ -119,53 +111,83 @@ void FFExecute::clearLine(int len)
     printf("\r"); // move to start
 }
 
+void FFExecute::printProgress(int progress)
+{
+    // create format __23/0123, or _123/0123
+    FFExecute::clearLine(15+2 + m_lengthOfDuration * 2);
+    str space = str(m_lengthOfDuration - FFExecute::lengthOfNumber(progress), ' ');
+    printf("    progress: %s%d/%d", space.c_str(), progress, m_duration);
+    fflush(stdout);
+}
+
+str FFExecute::makeFileProgressPostfix()
+{
+    // total_ffmpegs_to_perform should be the largest number
+    int lengthOfCount = FFExecute::lengthOfNumber(m_totalFFmpegsToPerform);
+    str cpFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_correctlyPerformedFFmpegs), ' ');
+    str pFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_performedFFmpegs), ' ');
+    str tFFtpSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_totalFFmpegsToPerform), ' ');
+    str fFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_failedFFmpegs), ' ');
+    str sFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_skippedFFmpegs), ' ');
+    str cpFF = cpFFSpace + std::to_string(m_correctlyPerformedFFmpegs);
+    str pFF = pFFSpace +  std::to_string(m_performedFFmpegs);
+    str tFFtp = tFFtpSpace +  std::to_string(m_totalFFmpegsToPerform);
+    str fFF = fFFSpace +  std::to_string(m_failedFFmpegs);
+    str sFF = sFFSpace +  std::to_string(m_skippedFFmpegs);
+
+    // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
+    return cpFF + "/" + pFF + "/" + tFFtp + " " + fFF + "/" + sFF;
+}
+
 void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
 {
-    // test if inFile extension is valid 
-    // test if video is h.265 with ffprobe
-    // set m_duration, by using ffprobe
-    /// add class variable that stores skipped files, due to file already has h.265, that will show "finished files 10/12 (2 skipped due to h.265)" /// idk what will be better, leaving that file alone, copying (this one seems the best) or moving it to output directory
-    
-    printf("  Starting new FFmpeg\n");          FFExecute::addTextToFFOFile("  Starting new ffmpeg\n");
+    // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
+    str filesProgress = FFExecute::makeFileProgressPostfix();
+
+    printf("  Starting new FFmpeg [ " COLOR_WHITE/*grey color*/ "%s" COLOR_RESET " ]\n", filesProgress.c_str());
+    FFExecute::addTextToFFOFile("  Starting new ffmpeg [ " + filesProgress + " ]\n");
+
     printf("    in:  %s\n", inFile.c_str());    FFExecute::addTextToFFOFile("    in:  " + inFile + "\n");
     printf("    out: %s\n", outFile.c_str());   FFExecute::addTextToFFOFile("    out: " + outFile + "\n");
 
-    if(!FFTester::testIfH265(inFile))
+    if(FFTester::testIfH265(inFile))
     {
         if(FFTester::errorOccur())
         {
-            fprintf(stderr, "    error occur while checking if file is H265: %s\n", 
+            fprintf(stderr, "    error occur while checking if file is H265: %s\n\n", 
                 FFTester::getErrorInfo().c_str());
             FFExecute::addTextToFFOFile("    error occur while checking if file is H265: " + 
-                FFTester::getErrorInfo() + "\n");
+                FFTester::getErrorInfo() + "\n\n");
             
+            ++ m_failedFFmpegs;
             return;
         }
         // in file is already H265 format!
-        fprintf(stderr, "    inFile is already H265! Skipping!\n");
-        FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n");
+        fprintf(stderr, "    inFile is already H265! Skipping!\n\n");
+        FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n\n");
 
         // possible actins here:
         // 1: skip inFile as it is      <
         // 2: copy inFile to outFile    
         // 3: move inFile to outFile    
 
+        ++ m_skippedFFmpegs;
         return;
     }
 
-    m_duration = FFExecute::getInterpretationOfTime(FFTester::getStrDuration());
-    m_sizeofDuration = FFExecute::sizeofDuration(m_duration);
-
     str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     command += " 2>&1"; // move stderr to stdout (connect them)
-    
-    str progressValue = str(m_sizeofDuration-1, ' ');
-    printf("    progress: %s0/%d", progressValue.c_str(), m_duration);
 
+    m_duration = FFExecute::getInterpretationOfTime(FFTester::getStrDuration());
+    m_lengthOfDuration = FFExecute::lengthOfNumber(m_duration);
+    FFExecute::printProgress(0);
+
+
+    
     FILE* pipe = pipeOpen(command.c_str(), "r");
     if (!pipe) {
-        fprintf(stderr, "    Cannot open the pipe!\n");
-        FFExecute::addTextToFFOFile("    Cannot open the pipe!\n");
+        fprintf(stderr, "    " COLOR_RED "Cannot open the pipe" COLOR_RESET "!\n\n");
+        FFExecute::addTextToFFOFile("    Cannot open the pipe!\n\n");
         return;
     }
 
@@ -175,30 +197,29 @@ void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
 
     int ffmpegExitCode = pipeClose(pipe);
 
-    ++ m_performedFFmpegs;
 
-
-    FFExecute::clearLine(15+2 + m_sizeofDuration * 2);
+    
     if(ffmpegExitCode) // not equal 0 - error occur in ffmpeg
     {
-        printf("    progress: %d/%d\n", m_duration, m_duration);
-        fprintf(stderr, "    FFmpeg " COLOR_RED "failed" COLOR_RESET " with code %d!\n", ffmpegExitCode);
-        FFExecute::addTextToFFOFile("    FFmpeg failed with code " + std::to_string(ffmpegExitCode) + "!\n");
+        ++ m_failedFFmpegs;
+        printf("\n");
+        fprintf(stderr, "    FFmpeg " COLOR_RED "failed" COLOR_RESET " with code %d!\n\n", ffmpegExitCode);
+        FFExecute::addTextToFFOFile("    FFmpeg failed with code " + std::to_string(ffmpegExitCode) + "!\n\n");
     }
     else // no error - ffmpeg finished correctly
     {
-        printf("    progress: %d/%d\n", m_duration, m_duration);
         ++ m_correctlyPerformedFFmpegs;
+        FFExecute::printProgress(m_duration);
+        printf("\n");
         fprintf(stderr, "    FFmpeg " COLOR_GREEN "finished" COLOR_RESET "!\n\n");
         FFExecute::addTextToFFOFile("    FFmpeg finished!\n\n");
     }
 
 }
 
-str FFExecute::changeExtToMP4(cstr pathToFile)
+void FFExecute::setTotalFFmpegsToPerform(int count)
 {
-    size_t dotPos = pathToFile.find_last_of('.');
-    return pathToFile.substr(0, dotPos+1) + "mp4";
+    m_totalFFmpegsToPerform = count;
 }
 
 void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
@@ -206,4 +227,5 @@ void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
     FFExecute::openFFOFile();
     FFExecute::_runFFmpeg(inFile, outFile);
     FFExecute::closeFFOFile();
+    ++ m_performedFFmpegs;
 }

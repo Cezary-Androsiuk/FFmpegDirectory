@@ -111,7 +111,8 @@ bool createOutputDirectory(fs::path outDirectory)
 
 str createOutputFile(cpath inFile)
 {
-
+    // size_t dotPos = pathToFile.find_last_of('.');
+    // return pathToFile.substr(0, dotPos+1) + "mp4";
 }
  
 int main(int argc, const char **argv)
@@ -134,17 +135,20 @@ int main(int argc, const char **argv)
     }
 
 
-    vstr acceptableExtensions = {"mkv", "mp4"};
-    vpath listOfFiles = ListMaker::listOfFiles(directory, acceptableExtensions);
+    // vstr acceptableExtensions = {"mkv", "mp4"};
+    // vpath listOfFiles = ListMaker::listOfFiles(directory, acceptableExtensions);
 
-    for(const auto &inFile : listOfFiles)
-    {
-        str outFile = createOutputFile(inFile);
-        FFExecute::runFFmpeg(inFile.string(), outFile);
-    }
+    // FFExecute::setTotalFFmpegsToPerform(listOfFiles.size());
+    FFExecute::setTotalFFmpegsToPerform(3);
+
+    // for(const auto &inFile : listOfFiles)
+    // {
+    //     str outFile = createOutputFile(inFile);
+    //     FFExecute::runFFmpeg(inFile.string(), outFile);
+    // }
 
 
-    std::string inFile = (directory / "1.mp4").string();
+    std::string inFile = (directory / "1.mkv").string();
     std::string outFile = (outDirectory / "1.mp4").string();
     // std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     FFExecute::runFFmpeg(inFile, outFile);
