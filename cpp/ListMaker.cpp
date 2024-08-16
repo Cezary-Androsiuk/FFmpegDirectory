@@ -21,6 +21,8 @@ vpath ListMaker::listOfFiles(cpath path, cvstr acceptableExtensions)
             continue;
 
         str extension = file.path().extension().string();
+        extension.erase(0, 1); // remove dot
+        
         if(vectorContains(acceptableExtensions, extension))
         {
             list.push_back(file.path());

@@ -10,7 +10,7 @@
 #include "cpp/ListMaker.hpp"
 
 // compile:
-// g++ main.cpp cpp\FFExecute.cpp cpp\FFTester.cpp cpp\ListMaker.hpp -o ffmpegAll.exe
+// g++ main.cpp cpp\FFExecute.cpp cpp\FFTester.cpp cpp\ListMaker.cpp -o ffmpegAll.exe
 
 // instalation(add ffmpegAll.exe to PATH environment):
 // to do this,
@@ -23,6 +23,7 @@
 namespace fs = std::filesystem;
 typedef std::string str;
 typedef std::vector<str> vstr;
+typedef const fs::path &cpath;
 typedef std::vector<fs::path> vpath;
 
 
@@ -109,10 +110,12 @@ bool createOutputDirectory(fs::path outDirectory)
     return true;
 }
 
-str createOutputFile(cpath inFile)
+fs::path createOutputFile(cpath inFile, cpath outDirectory)
 {
-    // size_t dotPos = pathToFile.find_last_of('.');
-    // return pathToFile.substr(0, dotPos+1) + "mp4";
+    str filename = inFile.filename().string();
+
+    size_t dotPos = filename.find_last_of('.');
+    return outDirectory / (filename.substr(0, dotPos+1) + "mp4");
 }
  
 int main(int argc, const char **argv)
@@ -135,63 +138,21 @@ int main(int argc, const char **argv)
     }
 
 
-    // vstr acceptableExtensions = {"mkv", "mp4"};
-    // vpath listOfFiles = ListMaker::listOfFiles(directory, acceptableExtensions);
+    vstr acceptableExtensions = {"mkv", "mp4"};
+    vpath listOfFiles = ListMaker::listOfFiles(directory, acceptableExtensions);
 
-    // FFExecute::setTotalFFmpegsToPerform(listOfFiles.size());
-    FFExecute::setTotalFFmpegsToPerform(3);
+    FFExecute::setTotalFFmpegsToPerform(listOfFiles.size());
 
-    // for(const auto &inFile : listOfFiles)
-    // {
-    //     str outFile = createOutputFile(inFile);
-    //     FFExecute::runFFmpeg(inFile.string(), outFile);
-    // }
+    for(const auto &inFile : listOfFiles)
+    {
+        // all files in list are valid at this point
+        fs::path outFile = createOutputFile(inFile, outDirectory);
+        FFExecute::runFFmpeg(inFile.string(), outFile.string());
+    }
 
-
-    std::string inFile = (directory / "1.mkv").string();
-    std::string outFile = (outDirectory / "1.mp4").string();
-    // std::string command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
-    FFExecute::runFFmpeg(inFile, outFile);
-    // printf("1 file... ");
-
-    // changeOutToFile("output1.txt");
-    // std::system(command.c_str());
-    // restoreOutToCMD();
-
-    // printf("1 was finished\n");
-
-
-
-
-    inFile = (directory / "2.mkv").string();
-    outFile = (outDirectory / "2.mp4").string();
-    // command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
-    FFExecute::runFFmpeg(inFile, outFile);
-    
-    // printf("2 file... ");
-    
-    // changeOutToFile("output2.txt");
-    // std::system(command.c_str());
-    // restoreOutToCMD();
-
-    // printf("2 was finished\n");
-
-
-
-
-    inFile = (directory / "3.mkv").string();
-    outFile = (outDirectory / "3.mp4").string();
-    // command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
-    FFExecute::runFFmpeg(inFile, outFile);
-    
-    // printf("3 file... ");
-    
-    // changeOutToFile("output3.txt");
-    // std::system(command.c_str());
-    // restoreOutToCMD();
-
-    // printf("3 was finished\n");
-
+    printf("Finished all FFmpegs!\n");
+    // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
+    printF("Summary: "); /* make getters in FFExecute and display all values */
 
 
     /// remove output directory if was empty
