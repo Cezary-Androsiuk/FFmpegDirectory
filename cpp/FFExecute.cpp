@@ -122,6 +122,8 @@ void FFExecute::printProgress(int progress)
 
 void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
 {
+    // check if out file exist (case when in input dir are exist files 1.mp4 and 1.mkv)
+
     // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
     str filesProgress = FFExecute::makeFileProgressPostfix();
 

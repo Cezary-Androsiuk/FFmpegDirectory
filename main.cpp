@@ -28,19 +28,73 @@ typedef std::vector<fs::path> vpath;
 
 
 str lastError;
+const char possibleSeparators[] = {',', '/', '\\', '|', ';', '+', '?'};
 #define FUNC_START {lastError = "";}
+#define DEFAULT_PATH fs::current_path()
+#define DEFAULT_EXTENSIONS {"mkv", "mp4"}
 
 #define COLOR_RESET   "\033[0m"
 #define COLOR_RED     "\033[31m"
 #define COLOR_GREEN   "\033[32m"
+#include <iostream>
+#include <string>
+#include <vector>
 
+vstr splitStringByChar(cstr str, char separator) {
+    // by Gemini
+    vstr splited;
+    size_t start = 0;
+    size_t end = str.find(separator);
 
-bool argsValid(int argc, const char **argv, fs::path * const absoluteDirectory = nullptr)
+    while (end != str::npos) {
+        splited.push_back(str.substr(start, end - start));
+        start = end + 1;
+        end = str.find(separator, start);
+    }
+
+    splited.push_back(str.substr(start, str::npos));
+
+    return splited;
+}
+
+vstr splitExtensionsInput(str input)
+{
+    char usedSeparator;
+    for(int i=0; i<sizeof(possibleSeparators); i++)
+    {
+        char testedSeparator = possibleSeparators[i];
+        if(input.find_first_of(testedSeparator) != str::npos)
+        {
+            usedSeparator = testedSeparator;
+            break;
+        }
+    }
+    return splitStringByChar(input, usedSeparator);
+}
+
+bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *const extensions)
 {
     FUNC_START
 
-    fs::path givenDirectory = argc == 1 ? fs::current_path() : argv[1];
+    fs::path givenDirectory;
+    vstr givenExtensions;
 
+    if(argc == 1) // none args
+    {
+        givenDirectory = DEFAULT_PATH;
+        givenExtensions = DEFAULT_EXTENSIONS;
+    }
+    else if(argc == 2) // one argument
+    {
+        givenDirectory = argv[1];
+        givenExtensions = DEFAULT_EXTENSIONS;
+    }
+    else if(argc >= 3) // two or more arguments
+    {
+        givenDirectory = argv[1];
+        givenExtensions = splitExtensionsInput( str(argv[2]) );
+    }
+    
     if(!fs::exists( givenDirectory ))
     {
         lastError = "File " + givenDirectory.string() + " not exist!";
@@ -53,8 +107,11 @@ bool argsValid(int argc, const char **argv, fs::path * const absoluteDirectory =
         return false;
     }
 
-    if(absoluteDirectory != nullptr)
-        *absoluteDirectory = fs::absolute( givenDirectory );
+    if(directory != nullptr)
+        *directory = fs::absolute( givenDirectory );
+
+    if(extensions != nullptr)
+        *extensions = givenExtensions;
 
     return true;
 
@@ -141,10 +198,11 @@ int main(int argc, const char **argv)
     /// mkv|mp4
 
     fs::path directory;
-    if(!argsValid(argc, argv, &directory))
+    vstr extensions;
+    if(!argsValid(argc, argv, &directory, &extensions))
     {
         fprintf(stderr, COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
-        fprintf(stderr, "Expected none or one argument, which is path to directory!\n");
+        fprintf(stderr, "Expected none, one or two arguments (directory, extensions)!\n");
         return 1;
     }
 
@@ -157,6 +215,7 @@ int main(int argc, const char **argv)
         return 1;
     }
 
+    printf("[ correctlyPerformed / performed / totalToPerform   failed / skipped ]\n");
 
     vstr acceptableExtensions = {"mkv", "mp4"};
     vpath listOfFiles = ListMaker::listOfFiles(directory, acceptableExtensions);
@@ -167,7 +226,7 @@ int main(int argc, const char **argv)
     {
         // all files in list are valid at this point
         fs::path outFile = createOutputFile(inFile, outDirectory);
-        // FFExecute::runFFmpeg(inFile.string(), outFile.string());
+        FFExecute::runFFmpeg(inFile.string(), outFile.string());
     }
 
     deleteDirectoryIfEmpty(outDirectory);
