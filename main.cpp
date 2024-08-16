@@ -117,9 +117,29 @@ fs::path createOutputFile(cpath inFile, cpath outDirectory)
     size_t dotPos = filename.find_last_of('.');
     return outDirectory / (filename.substr(0, dotPos+1) + "mp4");
 }
+
+void deleteDirectoryIfEmpty(fs::path outDirectory)
+{
+    if(fs::exists( outDirectory ))
+    {
+        // "ffmpeg-h.265" exist, now check if is directory
+        if(!fs::is_directory( outDirectory ))
+            return;
+
+        if(isDirectoryEmpty( outDirectory ))
+        {
+            fs::remove( outDirectory );
+        }
+    }
+}
  
 int main(int argc, const char **argv)
 {
+    /// add stronly attached arguments to program, where extensions are second argument for example:
+    /// mkv/mp4
+    /// mkv+mp4
+    /// mkv|mp4
+
     fs::path directory;
     if(!argsValid(argc, argv, &directory))
     {
@@ -147,13 +167,14 @@ int main(int argc, const char **argv)
     {
         // all files in list are valid at this point
         fs::path outFile = createOutputFile(inFile, outDirectory);
-        FFExecute::runFFmpeg(inFile.string(), outFile.string());
+        // FFExecute::runFFmpeg(inFile.string(), outFile.string());
     }
+
+    deleteDirectoryIfEmpty(outDirectory);
 
     printf("Finished all FFmpegs!\n");
     // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
-    printF("Summary: "); /* make getters in FFExecute and display all values */
+    str filesProgress = FFExecute::makeFileProgressPostfix();
+    printf("Summary: [ " COLOR_WHITE/*grey color*/ "%s" COLOR_RESET " ]\n", filesProgress.c_str()); 
 
-
-    /// remove output directory if was empty
 }

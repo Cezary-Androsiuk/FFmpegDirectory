@@ -120,25 +120,6 @@ void FFExecute::printProgress(int progress)
     fflush(stdout);
 }
 
-str FFExecute::makeFileProgressPostfix()
-{
-    // total_ffmpegs_to_perform should be the largest number
-    int lengthOfCount = FFExecute::lengthOfNumber(m_totalFFmpegsToPerform);
-    str cpFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_correctlyPerformedFFmpegs), ' ');
-    str pFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_performedFFmpegs), ' ');
-    str tFFtpSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_totalFFmpegsToPerform), ' ');
-    str fFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_failedFFmpegs), ' ');
-    str sFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_skippedFFmpegs), ' ');
-    str cpFF = cpFFSpace + std::to_string(m_correctlyPerformedFFmpegs);
-    str pFF = pFFSpace +  std::to_string(m_performedFFmpegs);
-    str tFFtp = tFFtpSpace +  std::to_string(m_totalFFmpegsToPerform);
-    str fFF = fFFSpace +  std::to_string(m_failedFFmpegs);
-    str sFF = sFFSpace +  std::to_string(m_skippedFFmpegs);
-
-    // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
-    return cpFF + "/" + pFF + "/" + tFFtp + " " + fFF + "/" + sFF;
-}
-
 void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
 {
     // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
@@ -214,7 +195,25 @@ void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
         fprintf(stderr, "    FFmpeg " COLOR_GREEN "finished" COLOR_RESET "!\n\n");
         FFExecute::addTextToFFOFile("    FFmpeg finished!\n\n");
     }
+}
 
+str FFExecute::makeFileProgressPostfix()
+{
+    // total_ffmpegs_to_perform should be the largest number
+    int lengthOfCount = FFExecute::lengthOfNumber(m_totalFFmpegsToPerform);
+    str cpFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_correctlyPerformedFFmpegs), ' ');
+    str pFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_performedFFmpegs), ' ');
+    str tFFtpSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_totalFFmpegsToPerform), ' ');
+    str fFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_failedFFmpegs), ' ');
+    str sFFSpace = str(lengthOfCount - FFExecute::lengthOfNumber(m_skippedFFmpegs), ' ');
+    str cpFF = cpFFSpace + std::to_string(m_correctlyPerformedFFmpegs);
+    str pFF = pFFSpace +  std::to_string(m_performedFFmpegs);
+    str tFFtp = tFFtpSpace +  std::to_string(m_totalFFmpegsToPerform);
+    str fFF = fFFSpace +  std::to_string(m_failedFFmpegs);
+    str sFF = sFFSpace +  std::to_string(m_skippedFFmpegs);
+
+    // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
+    return cpFF + "/" + pFF + "/" + tFFtp + " " + fFF + "/" + sFF;
 }
 
 void FFExecute::setTotalFFmpegsToPerform(int count)

@@ -91,10 +91,10 @@ class FFExecute
     static void clearLine(int len);
     static void printProgress(int progress);
 
-    static str makeFileProgressPostfix();
     static void _runFFmpeg(cstr inFile, cstr outFile);
 
 public:
+    static str makeFileProgressPostfix();
     static void setTotalFFmpegsToPerform(int count);
     static void runFFmpeg(cstr inFile, cstr outFile);
 
