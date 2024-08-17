@@ -70,6 +70,23 @@ str FFExecute::getCurrentTime()
     return str(buffer);
 }
 
+str FFExecute::changeOutputFileNameIfNeeded(cstr file)
+{
+    fs::path parentPath = fs::path(file).parent_path();
+    str filename = fs::path(file).filename().string();
+    int dotPos = filename.find_last_of('.');
+    str rawFilename = filename.substr(0, dotPos);
+    str rawExtension = filename.substr(dotPos+1);
+
+    fs::path newFileName = parentPath / (rawFilename + "." + rawExtension);
+    int index = 0;  
+    while(fs::exists(newFileName))
+    {
+        newFileName = parentPath / (rawFilename + "_" + std::to_string(index) + "." + rawExtension);
+    }
+    return newFileName.string();
+}
+
 void FFExecute::openFFOFile()
 {
     if(m_ffOFileName.empty())
@@ -120,15 +137,16 @@ void FFExecute::printProgress(int progress)
     fflush(stdout);
 }
 
-void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
+void FFExecute::_runFFmpeg(cstr inFile, str outFile)
 {
-    // check if out file exist (case when in input dir are exist files 1.mp4 and 1.mkv)
-
     // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
     str filesProgress = FFExecute::makeFileProgressPostfix();
 
     printf("  Starting new FFmpeg [ " COLOR_WHITE/*grey color*/ "%s" COLOR_RESET " ]\n", filesProgress.c_str());
     FFExecute::addTextToFFOFile("  Starting new ffmpeg [ " + filesProgress + " ]\n");
+
+    // check if out file exist (case when in input dir are exist files 1.mp4 and 1.mkv)
+    outFile = FFExecute::changeOutputFileNameIfNeeded(outFile);
 
     printf("    in:  %s\n", inFile.c_str());    FFExecute::addTextToFFOFile("    in:  " + inFile + "\n");
     printf("    out: %s\n", outFile.c_str());   FFExecute::addTextToFFOFile("    out: " + outFile + "\n");
@@ -146,7 +164,7 @@ void FFExecute::_runFFmpeg(cstr inFile, cstr outFile)
             return;
         }
         // in file is already H265 format!
-        fprintf(stderr, "    inFile is already H265! Skipping!\n\n");
+        fprintf(stderr, "    inFile is already H265! " COLOR_YELLOW "Skipping" COLOR_RESET "!\n\n");
         FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n\n");
 
         // possible actins here:

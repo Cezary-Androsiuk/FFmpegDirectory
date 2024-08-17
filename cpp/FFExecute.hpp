@@ -6,8 +6,11 @@
 #include <sstream> // for getInterpretationOfTime
 #include <ctime>
 #include <fstream>
+#include <filesystem>
 
 #include "FFTester.hpp"
+
+namespace fs = std::filesystem;
 
 typedef std::string str;
 typedef const std::string &cstr;
@@ -18,6 +21,7 @@ typedef const std::string &cstr;
 #define COLOR_RED     "\033[31m"
 #define COLOR_WHITE   "\033[37m"
 #define COLOR_GREEN   "\033[32m"
+#define COLOR_YELLOW  "\033[33m"
 
 // #define RESET   "\033[0m"
 // #define BLACK   "\033[30m"
@@ -81,6 +85,7 @@ class FFExecute
     static void printOutputToCMD(cstr line);
     static size_t getInterpretationOfTime(cstr strtime);
     static str getCurrentTime();
+    static str changeOutputFileNameIfNeeded(cstr fileName);
 
     static void openFFOFile(); // FFOFile is FFmpegOutputFile
     static void addTextToFFOFile(cstr ffmpegOutput); // FFOFile is FFmpegOutputFile
@@ -91,7 +96,7 @@ class FFExecute
     static void clearLine(int len);
     static void printProgress(int progress);
 
-    static void _runFFmpeg(cstr inFile, cstr outFile);
+    static void _runFFmpeg(cstr inFile, str outFile);
 
 public:
     static str makeFileProgressPostfix();

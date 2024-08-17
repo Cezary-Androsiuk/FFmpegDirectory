@@ -36,6 +36,8 @@ const char possibleSeparators[] = {',', '/', '\\', '|', ';', '+', '?'};
 #define COLOR_RESET   "\033[0m"
 #define COLOR_RED     "\033[31m"
 #define COLOR_GREEN   "\033[32m"
+#define COLOR_WHITE   "\033[37m"
+
 #include <iostream>
 #include <string>
 #include <vector>
@@ -192,10 +194,7 @@ void deleteDirectoryIfEmpty(fs::path outDirectory)
  
 int main(int argc, const char **argv)
 {
-    /// add stronly attached arguments to program, where extensions are second argument for example:
-    /// mkv/mp4
-    /// mkv+mp4
-    /// mkv|mp4
+    printf("\n");
 
     fs::path directory;
     vstr extensions;
@@ -215,7 +214,7 @@ int main(int argc, const char **argv)
         return 1;
     }
 
-    printf("[ correctlyPerformed / performed / totalToPerform   failed / skipped ]\n");
+    printf("[ " COLOR_WHITE/*grey color*/ "correctlyPerformed / performed / totalToPerform   failed / skipped" COLOR_RESET " ]\n\n");
 
     vstr acceptableExtensions = {"mkv", "mp4"};
     vpath listOfFiles = ListMaker::listOfFiles(directory, acceptableExtensions);
