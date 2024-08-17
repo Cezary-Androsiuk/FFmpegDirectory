@@ -15,8 +15,10 @@ bool ListMaker::vectorContains(cvstr vector, cstr string)
 vpath ListMaker::listOfFiles(cpath path, cvstr acceptableExtensions)
 {
     vpath list;
+    int index = 0;
     for(const auto &file : std::filesystem::directory_iterator(path))
     {
+        ++index;
         if(!file.is_regular_file())
             continue;
 
@@ -25,6 +27,7 @@ vpath ListMaker::listOfFiles(cpath path, cvstr acceptableExtensions)
         
         if(vectorContains(acceptableExtensions, extension))
         {
+            printf("  file nr % 3d: %s\n", index, file.path().string().c_str());
             list.push_back(file.path());
         }
     }

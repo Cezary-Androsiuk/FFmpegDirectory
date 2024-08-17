@@ -44,7 +44,7 @@ void FFTester::handleOutput(cstr line)
     }
 }
 
-bool FFTester::testIfH265(cstr filePath)
+bool FFTester::canBeConvertedToH265(cstr filePath)
 {
     m_errorInfo.clear();
     m_strDuration.clear();
@@ -56,7 +56,7 @@ bool FFTester::testIfH265(cstr filePath)
     FILE* pipe = pipeOpen(command.c_str(), "r");
     if (!pipe) {
         fprintf(stderr, "Cannot open the pipe!\n");
-        m_errorInfo += "Cannot open the pipe! ";
+        m_errorInfo = "Cannot open the pipe!";
         return false;
     }
 
@@ -68,10 +68,10 @@ bool FFTester::testIfH265(cstr filePath)
     }
 
     int ffprobeExitCode = pipeClose(pipe);
-
+    
     if(ffprobeExitCode) // error occur
     {
-        m_errorInfo += "FFprobe failed with code: " + std::to_string(ffprobeExitCode) + "! ";
+        m_errorInfo = "FFprobe failed with code: " + std::to_string(ffprobeExitCode) + "!";
         fprintf(stderr, "    FFprobe " COLOR_RED "failed" COLOR_RESET " with code %d!\n", ffprobeExitCode);
         return false;
     }
@@ -83,7 +83,7 @@ bool FFTester::testIfH265(cstr filePath)
     else if(m_verificationStatus == VerificationStatus::IsOther)
         printf("      FFTester found that video encoding is other than H265\n");
 
-    return m_verificationStatus == VerificationStatus::IsH265;
+    return m_verificationStatus != VerificationStatus::IsH265;
 }
 
 cstr FFTester::getErrorInfo()

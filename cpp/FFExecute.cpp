@@ -34,6 +34,9 @@ void FFExecute::printOutputToCMD(cstr line)
 
 size_t FFExecute::getInterpretationOfTime(cstr strtime)
 {
+    if(strtime.empty()) // i thought, that std::stoll will return 0 when gets empty string ...
+        return 0;
+
     // well coded by chat gpt
     std::stringstream ss(strtime);
     std::string segment;
@@ -82,7 +85,8 @@ str FFExecute::changeOutputFileNameIfNeeded(cstr file)
     int index = 0;  
     while(fs::exists(newFileName))
     {
-        newFileName = parentPath / (rawFilename + "_" + std::to_string(index) + "." + rawExtension);
+        printf("      out file with filename '%s' " COLOR_YELLOW "already exist" COLOR_RESET "!\n", newFileName.filename().string().c_str());
+        newFileName = parentPath / (rawFilename + "_" + std::to_string(index++) + "." + rawExtension);
     }
     return newFileName.string();
 }
@@ -139,11 +143,8 @@ void FFExecute::printProgress(int progress)
 
 void FFExecute::_runFFmpeg(cstr inFile, str outFile)
 {
-    // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
-    str filesProgress = FFExecute::makeFileProgressPostfix();
-
-    printf("  Starting new FFmpeg [ " COLOR_WHITE/*grey color*/ "%s" COLOR_RESET " ]\n", filesProgress.c_str());
-    FFExecute::addTextToFFOFile("  Starting new ffmpeg [ " + filesProgress + " ]\n");
+    printf("  Starting new FFmpeg\n");
+    FFExecute::addTextToFFOFile("  Starting new ffmpeg\n");
 
     // check if out file exist (case when in input dir are exist files 1.mp4 and 1.mkv)
     outFile = FFExecute::changeOutputFileNameIfNeeded(outFile);
@@ -151,21 +152,20 @@ void FFExecute::_runFFmpeg(cstr inFile, str outFile)
     printf("    in:  %s\n", inFile.c_str());    FFExecute::addTextToFFOFile("    in:  " + inFile + "\n");
     printf("    out: %s\n", outFile.c_str());   FFExecute::addTextToFFOFile("    out: " + outFile + "\n");
 
-    if(FFTester::testIfH265(inFile))
+    if(!FFTester::canBeConvertedToH265(inFile))
     {
         if(FFTester::errorOccur())
         {
-            fprintf(stderr, "    error occur while checking if file is H265: %s\n\n", 
+            fprintf(stderr, "    error occur while checking if file is H265: %s\n", 
                 FFTester::getErrorInfo().c_str());
             FFExecute::addTextToFFOFile("    error occur while checking if file is H265: " + 
-                FFTester::getErrorInfo() + "\n\n");
-            
+                FFTester::getErrorInfo() + "\n");
             ++ m_failedFFmpegs;
             return;
         }
         // in file is already H265 format!
-        fprintf(stderr, "    inFile is already H265! " COLOR_YELLOW "Skipping" COLOR_RESET "!\n\n");
-        FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n\n");
+        fprintf(stderr, "    inFile is already H265! " COLOR_YELLOW "Skipping" COLOR_RESET "!\n");
+        FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n");
 
         // possible actins here:
         // 1: skip inFile as it is      <
@@ -175,6 +175,8 @@ void FFExecute::_runFFmpeg(cstr inFile, str outFile)
         ++ m_skippedFFmpegs;
         return;
     }
+
+
 
     str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     command += " 2>&1"; // move stderr to stdout (connect them)
@@ -187,8 +189,8 @@ void FFExecute::_runFFmpeg(cstr inFile, str outFile)
     
     FILE* pipe = pipeOpen(command.c_str(), "r");
     if (!pipe) {
-        fprintf(stderr, "    " COLOR_RED "Cannot open the pipe" COLOR_RESET "!\n\n");
-        FFExecute::addTextToFFOFile("    Cannot open the pipe!\n\n");
+        fprintf(stderr, "    " COLOR_RED "Cannot open the pipe" COLOR_RESET "!\n");
+        FFExecute::addTextToFFOFile("    Cannot open the pipe!\n");
         return;
     }
 
@@ -204,20 +206,20 @@ void FFExecute::_runFFmpeg(cstr inFile, str outFile)
     {
         ++ m_failedFFmpegs;
         printf("\n");
-        fprintf(stderr, "    FFmpeg " COLOR_RED "failed" COLOR_RESET " with code %d!\n\n", ffmpegExitCode);
-        FFExecute::addTextToFFOFile("    FFmpeg failed with code " + std::to_string(ffmpegExitCode) + "!\n\n");
+        fprintf(stderr, "    FFmpeg " COLOR_RESET COLOR_RED "failed" COLOR_RESET " with code %d!\n", ffmpegExitCode);
+        FFExecute::addTextToFFOFile("    FFmpeg failed with code " + std::to_string(ffmpegExitCode) + "!\n");
     }
     else // no error - ffmpeg finished correctly
     {
         ++ m_correctlyPerformedFFmpegs;
         FFExecute::printProgress(m_duration);
         printf("\n");
-        fprintf(stderr, "    FFmpeg " COLOR_GREEN "finished" COLOR_RESET "!\n\n");
-        FFExecute::addTextToFFOFile("    FFmpeg finished!\n\n");
+        fprintf(stderr, "    FFmpeg " COLOR_GREEN "finished" COLOR_RESET "!\n");
+        FFExecute::addTextToFFOFile("    FFmpeg finished!\n");
     }
 }
 
-str FFExecute::makeFileProgressPostfix()
+str FFExecute::makeFileProgressPostfix(bool addColors)
 {
     // total_ffmpegs_to_perform should be the largest number
     int lengthOfCount = FFExecute::lengthOfNumber(m_totalFFmpegsToPerform);
@@ -233,7 +235,10 @@ str FFExecute::makeFileProgressPostfix()
     str sFF = sFFSpace +  std::to_string(m_skippedFFmpegs);
 
     // correctly_performed_ffmpegs / performed_ffmpegs / total_ffmpegs_to_perform   failed_ffmpegs / skipped_ffmpegs
-    return cpFF + "/" + pFF + "/" + tFFtp + " " + fFF + "/" + sFF;
+    if(addColors)
+        return COLOR_WHITE/*grey color*/ + cpFF + "/" + pFF + "/" + tFFtp + " " COLOR_RESET COLOR_RED + fFF + COLOR_RESET "/" COLOR_YELLOW + sFF + COLOR_RESET;
+    else 
+        return cpFF + "/" + pFF + "/" + tFFtp + " " + fFF + "/" + sFF;
 }
 
 void FFExecute::setTotalFFmpegsToPerform(int count)
@@ -245,6 +250,10 @@ void FFExecute::runFFmpeg(cstr inFile, cstr outFile)
 {
     FFExecute::openFFOFile();
     FFExecute::_runFFmpeg(inFile, outFile);
-    FFExecute::closeFFOFile();
     ++ m_performedFFmpegs;
+    
+    printf("    Statuts: [ %s ]\n\n", FFExecute::makeFileProgressPostfix().c_str());
+    FFExecute::addTextToFFOFile("    Status [ " + FFExecute::makeFileProgressPostfix(false) + " ]\n\n\n\n\n\n\n\n\n");
+    
+    FFExecute::closeFFOFile();
 }

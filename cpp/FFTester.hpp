@@ -13,6 +13,7 @@ typedef const std::string &cstr;
 #define COLOR_RESET   "\033[0m"
 #define COLOR_RED     "\033[31m"
 #define COLOR_GREEN   "\033[32m"
+#define TEXT_BOLD     "\033[1m"
 
 #define pipeOpen(...) _popen(__VA_ARGS__)
 #define pipeClose(...) _pclose(__VA_ARGS__)
@@ -43,7 +44,7 @@ class FFTester
     static str m_strDuration;
 
 public:
-    static bool testIfH265(cstr filePath); // returns true if file is h265
+    static bool canBeConvertedToH265(cstr filePath); // returns true if file is h265
 
     static cstr getErrorInfo();
     static cstr getStrDuration();

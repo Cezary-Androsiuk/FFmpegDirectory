@@ -22,6 +22,7 @@ typedef const std::string &cstr;
 #define COLOR_WHITE   "\033[37m"
 #define COLOR_GREEN   "\033[32m"
 #define COLOR_YELLOW  "\033[33m"
+#define TEXT_BOLD     "\033[1m"
 
 // #define RESET   "\033[0m"
 // #define BLACK   "\033[30m"
@@ -99,7 +100,7 @@ class FFExecute
     static void _runFFmpeg(cstr inFile, str outFile);
 
 public:
-    static str makeFileProgressPostfix();
+    static str makeFileProgressPostfix(bool addColors = true);
     static void setTotalFFmpegsToPerform(int count);
     static void runFFmpeg(cstr inFile, cstr outFile);
 
