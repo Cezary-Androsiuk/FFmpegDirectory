@@ -11,4 +11,4 @@
 
 
 ## Test files:
-![p3](https://github.com/Cezary-Androsiuk/FFmpegDirectory/blob/master/images/p2.png "p3") 
+![p3](https://github.com/Cezary-Androsiuk/FFmpegDirectory/blob/master/images/p3.png "p3") 
