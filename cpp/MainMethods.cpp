@@ -36,27 +36,58 @@ vstr splitExtensionsInput(str input)
     return splitStringByChar(input, usedSeparator);
 }
 
-bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *const extensions)
+void stringTolower(str &string)
+{
+    std::transform(string.begin(), string.end(), string.begin(), 
+        [](unsigned char c){ return std::tolower(c); });
+}
+
+SkipAction handleInputSkipAction(str input)
+{
+    stringTolower(input);
+    
+    if(input == "skip") return SkipAction::Skip;
+    else if(input == "move") return SkipAction::Move;
+    else if(input == "copy") return SkipAction::Copy;
+
+    fprintf(stderr, "Unrecognized '%s', available options are skip/move/copy\n");
+    return SkipAction::None;
+}
+
+bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *const extensions, SkipAction *const skipAction)
 {
     FUNC_START
 
     fs::path givenDirectory;
     vstr givenExtensions;
+    SkipAction givenSkipAction;
 
-    if(argc == 1) // none args
+    switch (argc)
     {
+    case 1: // none args
         givenDirectory = DEFAULT_PATH;
         givenExtensions = DEFAULT_EXTENSIONS;
-    }
-    else if(argc == 2) // one argument
-    {
+        givenSkipAction = DEFAULT_SKIP_ACTION;
+        break;
+
+    case 2: // one argument
         givenDirectory = argv[1];
         givenExtensions = DEFAULT_EXTENSIONS;
-    }
-    else if(argc >= 3) // two or more arguments
-    {
+        givenSkipAction = DEFAULT_SKIP_ACTION;
+        break;
+
+    case 3: // two arguments
         givenDirectory = argv[1];
         givenExtensions = splitExtensionsInput( str(argv[2]) );
+        givenSkipAction = DEFAULT_SKIP_ACTION;
+        break;
+
+    case 4: // three arguments
+    default: // more argumens
+        givenDirectory = argv[1];
+        givenExtensions = splitExtensionsInput( str(argv[2]) );
+        givenSkipAction = handleInputSkipAction( str(argv[3]) );
+        break;
     }
     
     if(!fs::exists( givenDirectory ))
@@ -71,11 +102,21 @@ bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *con
         return false;
     }
 
+    if(givenSkipAction == SkipAction::None)
+    {
+        // don't use default to not force user to stop algorithm (for example if he spell type wrong)
+        lastError = "Given argument not match possible options!";
+        return false;
+    }
+
     if(directory != nullptr)
         *directory = fs::absolute( givenDirectory );
 
     if(extensions != nullptr)
         *extensions = givenExtensions;
+
+    if(skipAction != nullptr)
+        *skipAction = givenSkipAction;
 
     return true;
 

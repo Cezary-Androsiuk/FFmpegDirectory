@@ -99,11 +99,16 @@ class FFExecute
     static str splitNumberByThousands(int number, char separator = ' ');
     static void printProgress(int progress);
 
+    static void skipFileAction();
+    static bool copyFileAction(cstr from, cstr to);
+    static bool moveFileAction(cstr from, cstr to);
+
     static void _runFFmpeg(cstr inFile, str outFile);
 
 public:
     static str makeFileProgressPostfix(bool addColors = true);
     static void setTotalFFmpegsToPerform(int count);
+    static void setSkipAction(SkipAction skipAction);
     static void runFFmpeg(cstr inFile, cstr outFile);
 
 private:
@@ -112,6 +117,7 @@ private:
     static int m_failedFFmpegs;
     static int m_skippedFFmpegs;
     static int m_totalFFmpegsToPerform;
+    static SkipAction m_skipAction;
     
     static std::ofstream m_ffOFile; // ffOFile is FFmpegOutputFile
     static str m_ffOFileName; // ffOFile is FFmpegOutputFile

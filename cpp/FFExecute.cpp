@@ -5,6 +5,7 @@ int FFExecute::m_correctlyPerformedFFmpegs = 0;
 int FFExecute::m_failedFFmpegs = 0;
 int FFExecute::m_skippedFFmpegs = 0;
 int FFExecute::m_totalFFmpegsToPerform = 0;
+SkipAction FFExecute::m_skipAction = SkipAction::Skip;
 
 std::ofstream FFExecute::m_ffOFile;
 str FFExecute::m_ffOFileName;
@@ -162,6 +163,50 @@ void FFExecute::printProgress(int progress)
     fflush(stdout);
 }
 
+void FFExecute::skipFileAction()
+{
+    fprintf(stderr, "    inFile is already H265! " COLOR_YELLOW "Skipping" COLOR_RESET "!\n");
+    FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n");
+}
+bool FFExecute::copyFileAction(cstr from, cstr to)
+{
+    fprintf(stderr, "    inFile is already H265! " COLOR_YELLOW "Copying" COLOR_RESET "!\n");
+    FFExecute::addTextToFFOFile("    inFile is already H265! Copying!\n");
+
+    // copy file
+    try
+    {
+        fs::copy_file(fs::path(from), fs::path(to));
+        return true;
+    }
+    catch(std::filesystem::filesystem_error &e)
+    {
+        fprintf(stderr, "    Copying file " COLOR_RED "failed" COLOR_RESET ": %s\n", e.what());
+        FFExecute::addTextToFFOFile("    Copying file failed: " + str( e.what() ));
+        ++ m_failedFFmpegs;
+        return false;
+    }
+}
+bool FFExecute::moveFileAction(cstr from, cstr to)
+{
+    fprintf(stderr, "    inFile is already H265! " COLOR_YELLOW "Moving" COLOR_RESET "!\n");
+    FFExecute::addTextToFFOFile("    inFile is already H265! Moving!\n");
+
+    // move file
+    try
+    {
+        fs::rename(fs::path(from), fs::path(to));
+        return true;
+    }
+    catch(std::filesystem::filesystem_error &e)
+    {
+        fprintf(stderr, "    Moving file " COLOR_RED "failed" COLOR_RESET ": %s\n", e.what());
+        FFExecute::addTextToFFOFile("    Moving file failed: " + str( e.what() ));
+        ++ m_failedFFmpegs;
+        return false;
+    }
+}
+
 void FFExecute::_runFFmpeg(cstr inFile, str outFile)
 {
     printf("  Starting new FFmpeg\n");
@@ -185,18 +230,32 @@ void FFExecute::_runFFmpeg(cstr inFile, str outFile)
             return;
         }
         // in file is already H265 format!
-        fprintf(stderr, "    inFile is already H265! " COLOR_YELLOW "Skipping" COLOR_RESET "!\n");
-        FFExecute::addTextToFFOFile("    inFile is already H265! Skipping!\n");
 
         // possible actins here:
-        // 1: skip inFile as it is      <
+        // 1: skip inFile as it is
         // 2: copy inFile to outFile    
-        // 3: move inFile to outFile    
+        // 3: move inFile to outFile  
+
+        switch (m_skipAction)
+        {
+        case SkipAction::Skip:
+            FFExecute::skipFileAction();
+            break;
+            
+        case SkipAction::Copy:
+            if(!FFExecute::copyFileAction(inFile, outFile))
+                return;
+            break;
+            
+        case SkipAction::Move:
+            if(!FFExecute::moveFileAction(inFile, outFile))
+                return;
+            break;
+        }
 
         ++ m_skippedFFmpegs;
         return;
     }
-
 
 
     str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
@@ -265,6 +324,11 @@ str FFExecute::makeFileProgressPostfix(bool addColors)
 void FFExecute::setTotalFFmpegsToPerform(int count)
 {
     m_totalFFmpegsToPerform = count;
+}
+
+void FFExecute::setSkipAction(SkipAction skipAction)
+{
+    m_skipAction = skipAction;
 }
 
 void FFExecute::runFFmpeg(cstr inFile, cstr outFile)

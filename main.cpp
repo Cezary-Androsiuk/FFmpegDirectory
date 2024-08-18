@@ -26,7 +26,8 @@ int main(int argc, const char **argv)
 
     fs::path directory;
     vstr extensions;
-    if(!argsValid(argc, argv, &directory, &extensions))
+    SkipAction skipAction;
+    if(!argsValid(argc, argv, &directory, &extensions, &skipAction))
     {
         fprintf(stderr, COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
         fprintf(stderr, "Expected none, one or two arguments (directory, extensions)!\n");
@@ -46,10 +47,17 @@ int main(int argc, const char **argv)
     }
 
     vpath listOfFiles = ListMaker::listOfFiles(directory, extensions);
+
     FFExecute::setTotalFFmpegsToPerform(listOfFiles.size());
+    FFExecute::setSkipAction(skipAction);
     
+    str skippedText;
+    if(skipAction == SkipAction::Skip) skippedText = "skipped";
+    else if(skipAction == SkipAction::Copy) skippedText = "copied";
+    else if(skipAction == SkipAction::Move) skippedText = "moved";
+
     printf("\n[ " COLOR_WHITE/*grey color*/ "correctlyPerformed / performed / totalToPerform   " 
-        COLOR_RESET COLOR_RED "failed" COLOR_RESET " / " COLOR_YELLOW "skipped" COLOR_RESET " ]\n");
+        COLOR_RESET COLOR_RED "failed" COLOR_RESET " / " COLOR_YELLOW "%s" COLOR_RESET " ]\n", skippedText.c_str());
 
     str filesProgress = FFExecute::makeFileProgressPostfix();
     printf("Status: [ %s ]\n\n", filesProgress.c_str()); 

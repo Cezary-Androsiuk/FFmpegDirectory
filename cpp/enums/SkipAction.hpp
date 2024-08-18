@@ -4,7 +4,8 @@
 enum SkipAction{
     Skip,
     Move,
-    Copy
+    Copy,
+    None // not selected, 
 };
 
 #endif // SKIP_ACTION_HPP
