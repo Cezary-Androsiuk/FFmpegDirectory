@@ -95,6 +95,7 @@ class FFExecute
     static int lengthOfNumber(int number);
 
     static void clearLine(int len);
+    static str splitNumberByThousands(int number, char separator = ' ');
     static void printProgress(int progress);
 
     static void _runFFmpeg(cstr inFile, str outFile);
@@ -113,8 +114,7 @@ private:
     
     static std::ofstream m_ffOFile; // ffOFile is FFmpegOutputFile
     static str m_ffOFileName; // ffOFile is FFmpegOutputFile
-    static size_t m_duration;
-    static int m_lengthOfDuration;
+    static str m_strDuration;
 };
 
 #endif

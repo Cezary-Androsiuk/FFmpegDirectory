@@ -8,8 +8,7 @@ int FFExecute::m_totalFFmpegsToPerform = 0;
 
 std::ofstream FFExecute::m_ffOFile;
 str FFExecute::m_ffOFileName;
-size_t FFExecute::m_duration;
-int FFExecute::m_lengthOfDuration = 0;
+str FFExecute::m_strDuration;
 
 void FFExecute::handleOutput(cstr line)
 {
@@ -132,12 +131,34 @@ void FFExecute::clearLine(int len)
     printf("\r"); // move to start
 }
 
+str FFExecute::splitNumberByThousands(int number, char separator)
+{
+    str strNumber = std::to_string(number);
+    str splited;
+    while(strNumber.size() > 3)
+    {
+        str part = strNumber.substr(strNumber.size() - 3, 3);
+        strNumber.erase(strNumber.size() - 3, 3);
+
+        splited.insert(0, part);
+        
+        if(!strNumber.empty())
+            splited.insert(0, 1, separator);
+    };
+    splited.insert(0, strNumber);
+
+    return splited;
+}
+
 void FFExecute::printProgress(int progress)
 {
     // create format __23/0123, or _123/0123
-    FFExecute::clearLine(15+2 + m_lengthOfDuration * 2);
-    str space = str(m_lengthOfDuration - FFExecute::lengthOfNumber(progress), ' ');
-    printf("    progress: %s%d/%d", space.c_str(), progress, m_duration);
+    FFExecute::clearLine(15+2 + m_strDuration.size() * 2);
+
+    str strProgress = FFExecute::splitNumberByThousands(progress);
+    str space = str(m_strDuration.size() - strProgress.size(), ' ');
+
+    printf("    progress:  %s%s / %s", space.c_str(), strProgress.c_str(), m_strDuration.c_str());
     fflush(stdout);
 }
 
@@ -181,8 +202,8 @@ void FFExecute::_runFFmpeg(cstr inFile, str outFile)
     str command = "ffmpeg -i \"" + inFile + "\" -c:v libx265 -vtag hvc1 \"" + outFile + "\"";
     command += " 2>&1"; // move stderr to stdout (connect them)
 
-    m_duration = FFExecute::getInterpretationOfTime(FFTester::getStrDuration());
-    m_lengthOfDuration = FFExecute::lengthOfNumber(m_duration);
+    int duration = FFExecute::getInterpretationOfTime(FFTester::getStrDuration());
+    m_strDuration = FFExecute::splitNumberByThousands(duration);
     FFExecute::printProgress(0);
 
 
@@ -212,7 +233,7 @@ void FFExecute::_runFFmpeg(cstr inFile, str outFile)
     else // no error - ffmpeg finished correctly
     {
         ++ m_correctlyPerformedFFmpegs;
-        FFExecute::printProgress(m_duration);
+        FFExecute::printProgress(duration);
         printf("\n");
         fprintf(stderr, "    FFmpeg " COLOR_GREEN "finished" COLOR_RESET "!\n");
         FFExecute::addTextToFFOFile("    FFmpeg finished!\n");

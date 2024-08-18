@@ -72,7 +72,7 @@ bool FFTester::canBeConvertedToH265(cstr filePath)
     if(ffprobeExitCode) // error occur
     {
         m_errorInfo = "FFprobe failed with code: " + std::to_string(ffprobeExitCode) + "!";
-        fprintf(stderr, "    FFprobe " COLOR_RED "failed" COLOR_RESET " with code %d!\n", ffprobeExitCode);
+        fprintf(stderr, "      FFprobe " COLOR_RED "failed" COLOR_RESET " with code %d!\n", ffprobeExitCode);
         return false;
     }
 
