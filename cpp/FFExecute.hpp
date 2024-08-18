@@ -9,6 +9,7 @@
 #include <filesystem>
 
 #include "FFTester.hpp"
+#include "enums/SkipAction.hpp"
 
 namespace fs = std::filesystem;
 
