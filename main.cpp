@@ -71,6 +71,7 @@ int main(int argc, const char **argv)
 
     FFExecute::setTotalFFmpegsToPerform(listOfFiles.size());
     FFExecute::setSkipAction(skipAction);
+    FFExecute::setffOFileDirectory(directory);
     
     str skippedText;
     if(skipAction == SkipAction::Skip) skippedText = "skipped";
