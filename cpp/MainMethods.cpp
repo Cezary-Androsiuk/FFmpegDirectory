@@ -177,6 +177,8 @@ fs::path createOutputFilename(cpath inFile, cpath outDirectory)
     str filename = inFile.filename().string();
 
     size_t dotPos = filename.find_last_of('.');
+    if(dotPos == str::npos)
+        return outDirectory / (filename + ".mp4");
     return outDirectory / (filename.substr(0, dotPos+1) + "mp4");
 }
 
