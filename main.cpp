@@ -11,14 +11,15 @@
 // compile:
 // g++ main.cpp cpp\MainMethods.cpp cpp\FFExecute.cpp cpp\FFTester.cpp cpp\ListMaker.cpp -o ffmpegDir.exe
 
-// instalation(add ffmpegAll.exe to PATH environment):
+// instalation(add ffmpegDir.exe to PATH environment):
 // 1 in windows search type "Edit the system environment variables" 
 // 2 press "Environment Variables..." button
 // 3 in bottom part (System variables) find variable named "Path" and double click on it
 // 4 press on the right site the "New" button and type path to directory, where executable file (created after compilation) is located
 // in example path to this executable (for now) is "D:\vscode\c++\projects\FFmpegDirectory"
-// now, you can open cmd in any directory and just in command prompt type "ffmpegDir . mkv|mp4"
+// now, you can open cmd in any directory and just in command prompt type "ffmpegDir . mkv+mp4"
 
+#define FLEXIBLE_ARGUMENTS false
 
 int main(int argc, const char **argv)
 {
@@ -27,12 +28,32 @@ int main(int argc, const char **argv)
     fs::path directory;
     vstr extensions;
     SkipAction skipAction;
+#if FLEXIBLE_ARGUMENTS
+    if(!argsValidFlexible(argc, argv, &directory, &extensions, &skipAction))
+    {
+        fprintf(stderr, COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
+        fprintf(stderr, "Expected none, one, two or three arguments!\n");
+        printf("ffmpegDir :1 :2 :3\n");
+        printf("  :1 - path to execute ffmpeg in it\n");
+        printf("  :2 - extensions to look for, can be separated by ,/\\?;+\n");
+        printf("  :3 - action when file is already H265 [skip/copy/move]\n");
+
+        return 1;
+    }
+#else
     if(!argsValid(argc, argv, &directory, &extensions, &skipAction))
     {
         fprintf(stderr, COLOR_RESET "Arguments are not valid:" COLOR_RED " %s\n" COLOR_RESET, lastError.c_str());
-        fprintf(stderr, "Expected none, one or two arguments (directory, extensions)!\n");
+        fprintf(stderr, "Expected three arguments!\n");
+        printf("ffmpegDir :1 :2 :3\n");
+        printf("  :1 - path to execute ffmpeg in it\n");
+        printf("  :2 - extensions to look for, can be separated by ,/\\?;+\n");
+        printf("  :3 - action when file is already H265 [skip/copy/move]\n");
+
         return 1;
     }
+
+#endif
 
     printf("Selected directory: %s\n", directory.string().c_str());
     printf("Found files:\n");

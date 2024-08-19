@@ -41,6 +41,7 @@ vstr splitExtensionsInput(str input);
 void stringTolower(str &string);
 SkipAction handleInputSkipAction(str input);
 bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *const extensions, SkipAction *const skipAction);
+bool argsValidFlexible(int argc, const char **argv, fs::path *const directory, vstr *const extensions, SkipAction *const skipAction);
 
 bool isDirectoryEmpty(fs::path directory);
 bool createOutputDirectory(fs::path outDirectory);

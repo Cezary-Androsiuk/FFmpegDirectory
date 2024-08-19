@@ -50,11 +50,56 @@ SkipAction handleInputSkipAction(str input)
     else if(input == "move") return SkipAction::Move;
     else if(input == "copy") return SkipAction::Copy;
 
-    fprintf(stderr, "Unrecognized '%s', available options are skip/move/copy\n");
+    // fprintf(stderr, "Unrecognized '%s', available options are skip/move/copy\n");
     return SkipAction::None;
 }
 
 bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *const extensions, SkipAction *const skipAction)
+{
+    FUNC_START
+    
+    if(argc < 4)
+    {
+        lastError = "To few arguments!";
+        return false;
+    }
+
+    fs::path givenDirectory = argv[1];
+    vstr givenExtensions = splitExtensionsInput( str(argv[2]) );
+    SkipAction givenSkipAction = handleInputSkipAction( str(argv[3]) );
+    
+    if(!fs::exists( givenDirectory ))
+    {
+        lastError = "File " + givenDirectory.string() + " not exist!";
+        return false;
+    }
+
+    if(!fs::is_directory( givenDirectory ))
+    {
+        lastError = "File " + givenDirectory.string() + " is not a directory!";
+        return false;
+    }
+
+    if(givenSkipAction == SkipAction::None)
+    {
+        // don't use default to not force user to stop algorithm (for example if he spell type wrong)
+        lastError = "Given argument '" + str( argv[3] ) + "' not match possible options!";
+        return false;
+    }
+
+    if(directory != nullptr)
+        *directory = fs::absolute( givenDirectory );
+
+    if(extensions != nullptr)
+        *extensions = givenExtensions;
+
+    if(skipAction != nullptr)
+        *skipAction = givenSkipAction;
+
+    return true;
+}
+
+bool argsValidFlexible(int argc, const char **argv, fs::path *const directory, vstr *const extensions, SkipAction *const skipAction)
 {
     FUNC_START
 
@@ -105,7 +150,7 @@ bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *con
     if(givenSkipAction == SkipAction::None)
     {
         // don't use default to not force user to stop algorithm (for example if he spell type wrong)
-        lastError = "Given argument not match possible options!";
+        lastError = "Given argument '" + str( argv[3] ) + "' not match possible options!";
         return false;
     }
 
@@ -119,16 +164,6 @@ bool argsValid(int argc, const char **argv, fs::path *const directory, vstr *con
         *skipAction = givenSkipAction;
 
     return true;
-
-    // nice in tests, shows all what is needed
-    // std::string currentPath = fs::current_path().string();
-    // printf("current path: %s\n", currentPath.c_str());
-    // fs::path selectedPath(argv[1]);
-    // printf("is relative: %d\nis absolute: %d\n", selectedPath.is_relative(), selectedPath.is_absolute());
-    // printf("exist: %d\n", fs::exists(selectedPath));
-    // printf("is directory: %d\n", fs::is_directory(selectedPath));
-    // printf("selected path: %s\n", selectedPath.string().c_str());
-    // printf("absolute: %s\n",fs::absolute(selectedPath).string().c_str());
 }
 
 bool isDirectoryEmpty(fs::path directory)
